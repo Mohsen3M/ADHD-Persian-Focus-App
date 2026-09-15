@@ -6,6 +6,8 @@
   <title>Dopamine Focus Engine</title>
   
   <link rel="manifest" href="manifest.json">
+  <link rel="icon" href="./icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="./icon.svg">
   <meta name="theme-color" content="#07090e">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -473,23 +475,38 @@
   const startBtn = document.getElementById("startBtn");
   const anchorAlert = document.getElementById("anchorAlert");
 
+  // موتور صوتی اختصاصی آنلاک‌شده برای موبایل و وب‌کیت
   let audioCtx = null;
-  function getAudioCtx() {
+
+  function unlockAudio() {
     try {
       if (!audioCtx) {
         const AudioClass = window.AudioContext || window.webkitAudioContext;
         if (AudioClass) audioCtx = new AudioClass();
       }
-      if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+      if (audioCtx && audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+      // شلیک پالس صامت برای خروج از محدودیت سخت‌افزاری مرورگرهای موبایل
+      if (audioCtx) {
+        const buffer = audioCtx.createBuffer(1, 1, 22050);
+        const source = audioCtx.createBufferSource();
+        source.buffer = buffer;
+        source.connect(audioCtx.destination);
+        source.start(0);
+      }
     } catch(e) {}
     return audioCtx;
   }
 
-  document.addEventListener('touchstart', () => { getAudioCtx(); }, { once: true });
+  // آنلاک با اولین لمس یا کلیک در کل صفحه
+  window.addEventListener('touchstart', unlockAudio, { passive: true });
+  window.addEventListener('touchend', unlockAudio, { passive: true });
+  window.addEventListener('click', unlockAudio, { passive: true });
 
   function playTone(freq, duration) {
     try {
-      const ctx = getAudioCtx();
+      const ctx = unlockAudio();
       if (!ctx) return;
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
@@ -497,15 +514,19 @@
       osc.type = "sine";
       osc.connect(gain);
       gain.connect(ctx.destination);
-      osc.start();
-      gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + duration);
-      osc.stop(ctx.currentTime + duration);
+      
+      const now = ctx.currentTime;
+      gain.gain.setValueAtTime(0.35, now);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+      
+      osc.start(now);
+      osc.stop(now + duration);
     } catch(e) {}
   }
 
   function playRewardChime() {
     try {
-      const ctx = getAudioCtx();
+      const ctx = unlockAudio();
       if (!ctx) return;
       [523.25, 659.25, 783.99, 1046.50].forEach((freq, i) => {
         const osc = ctx.createOscillator();
@@ -513,16 +534,20 @@
         osc.frequency.value = freq;
         osc.connect(gain);
         gain.connect(ctx.destination);
-        osc.start(ctx.currentTime + i * 0.07);
-        gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + i * 0.07 + 0.3);
-        osc.stop(ctx.currentTime + i * 0.07 + 0.3);
+        
+        const startTime = ctx.currentTime + i * 0.08;
+        gain.gain.setValueAtTime(0.3, startTime);
+        gain.gain.exponentialRampToValueAtTime(0.0001, startTime + 0.35);
+        
+        osc.start(startTime);
+        osc.stop(startTime + 0.35);
       });
     } catch(e) {}
   }
 
   function playLevelUpFanfare() {
     try {
-      const ctx = getAudioCtx();
+      const ctx = unlockAudio();
       if (!ctx) return;
       [440, 554.37, 659.25, 880].forEach((freq, i) => {
         const osc = ctx.createOscillator();
@@ -531,26 +556,38 @@
         osc.frequency.value = freq;
         osc.connect(gain);
         gain.connect(ctx.destination);
-        osc.start(ctx.currentTime + i * 0.09);
-        gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.6);
-        osc.stop(ctx.currentTime + 0.6);
+        
+        const startTime = ctx.currentTime + i * 0.09;
+        gain.gain.setValueAtTime(0.3, startTime);
+        gain.gain.exponentialRampToValueAtTime(0.0001, startTime + 0.6);
+        
+        osc.start(startTime);
+        osc.stop(startTime + 0.6);
       });
     } catch(e) {}
   }
 
-  let noiseNode = null, isNoisePlaying = false;
+  // ۱. نویز بم تقویت‌شده (Brown Noise)
+  let noiseNode = null, isNoisePlaying = false, noiseGainNode = null;
   function toggleBrownNoise() {
     const btn = document.getElementById("noiseBtn");
-    const ctx = getAudioCtx();
+    const ctx = unlockAudio();
     if (!ctx) return;
 
     if (isNoisePlaying) {
-      if (noiseNode) { try { noiseNode.stop(); noiseNode.disconnect(); } catch(e) {} noiseNode = null; }
+      if (noiseNode) {
+        try { noiseNode.stop(); noiseNode.disconnect(); } catch(e) {}
+        noiseNode = null;
+      }
+      if (noiseGainNode) {
+        try { noiseGainNode.disconnect(); } catch(e) {}
+        noiseGainNode = null;
+      }
       isNoisePlaying = false;
       btn.classList.remove("active-noise");
       btn.innerText = "🌊 نویز بم";
     } else {
-      const bufferSize = ctx.sampleRate * 4;
+      const bufferSize = ctx.sampleRate * 3;
       const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
       const data = buffer.getChannelData(0);
       let lastOut = 0.0;
@@ -558,48 +595,57 @@
         const white = Math.random() * 2 - 1;
         data[i] = (lastOut + (0.02 * white)) / 1.02;
         lastOut = data[i];
-        data[i] *= 3.5;
+        data[i] *= 4.2; // دامنه تقویت‌شده نویز بم
       }
       noiseNode = ctx.createBufferSource();
       noiseNode.buffer = buffer;
       noiseNode.loop = true;
-      const gain = ctx.createGain();
-      gain.gain.value = 0.16;
-      noiseNode.connect(gain);
-      gain.connect(ctx.destination);
-      noiseNode.start();
+      
+      noiseGainNode = ctx.createGain();
+      noiseGainNode.gain.setValueAtTime(0.45, ctx.currentTime);
+      noiseNode.connect(noiseGainNode);
+      noiseGainNode.connect(ctx.destination);
+      
+      noiseNode.start(0);
       isNoisePlaying = true;
       btn.classList.add("active-noise");
       btn.innerText = "قطع نویز 🔊";
     }
   }
 
-  let gammaOscL = null, gammaOscR = null, isGammaPlaying = false;
+  // ۲. موج باینورال ۴۰Hz تقویت‌شده
+  let gammaOscL = null, gammaOscR = null, isGammaPlaying = false, gammaGainNode = null;
   function toggleGammaWave() {
     const btn = document.getElementById("gammaBtn");
-    const ctx = getAudioCtx();
+    const ctx = unlockAudio();
     if (!ctx) return;
 
     if (isGammaPlaying) {
       if (gammaOscL) { try { gammaOscL.stop(); gammaOscL.disconnect(); } catch(e) {} gammaOscL = null; }
       if (gammaOscR) { try { gammaOscR.stop(); gammaOscR.disconnect(); } catch(e) {} gammaOscR = null; }
+      if (gammaGainNode) { try { gammaGainNode.disconnect(); } catch(e) {} gammaGainNode = null; }
       isGammaPlaying = false;
       btn.classList.remove("active-gamma");
       btn.innerText = "🧠 ۴۰Hz";
     } else {
       const merger = ctx.createChannelMerger(2);
-      const gammaGain = ctx.createGain();
-      gammaGain.gain.value = 0.08;
+      gammaGainNode = ctx.createGain();
+      gammaGainNode.gain.setValueAtTime(0.3, ctx.currentTime);
+
       gammaOscL = ctx.createOscillator();
       gammaOscL.frequency.value = 200;
       gammaOscL.connect(merger, 0, 0);
+
       gammaOscR = ctx.createOscillator();
       gammaOscR.frequency.value = 240;
       gammaOscR.connect(merger, 0, 1);
-      merger.connect(gammaGain);
-      gammaGain.connect(ctx.destination);
-      gammaOscL.start();
-      gammaOscR.start();
+
+      merger.connect(gammaGainNode);
+      gammaGainNode.connect(ctx.destination);
+
+      gammaOscL.start(0);
+      gammaOscR.start(0);
+
       isGammaPlaying = true;
       btn.classList.add("active-gamma");
       btn.innerText = "قطع ۴۰Hz ⚡";
@@ -657,7 +703,7 @@
   }
 
   function toggleTimer() {
-    getAudioCtx();
+    unlockAudio();
     if (timerId) {
       clearInterval(timerId);
       timerId = null;
@@ -751,6 +797,7 @@
   }
 
   function toggleTask(index) {
+    unlockAudio();
     tasks[index].completed = !tasks[index].completed;
     if (tasks[index].completed) { playRewardChime(); addXP(50); }
     renderTasks();
@@ -811,7 +858,6 @@
     wordCountBadge.innerText = `${count} کلمه`;
   }
 
-  // ثبت رسمی Service Worker برای نصب PWA
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
       navigator.serviceWorker.register('./sw.js').catch(() => {});
