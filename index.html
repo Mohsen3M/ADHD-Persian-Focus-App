@@ -110,6 +110,8 @@
     .date-shamsi {
       color: #e2e8f0;
       font-weight: 600;
+      direction: rtl;
+      unicode-bidi: isolate;
     }
 
     .date-miladi {
@@ -528,14 +530,14 @@
   <div class="dashboard">
     <!-- پنل ۱: تایمر و فرماندهی تمرکز -->
     <div class="panel timer-panel">
-      <div id="phaseBadge" class="phase-badge">اسپرینت ۱</div>
+      <div id="phaseBadge" class="phase-badge">اسپرینت ۱ (حمله ۲۰ دقیقه‌ای)</div>
       
       <div class="timer-wrap">
         <svg>
           <circle class="bg-circle" cx="113" cy="113" r="98"></circle>
           <circle id="progress" class="progress-circle" cx="113" cy="113" r="98"></circle>
         </svg>
-        <div id="timeText" class="time-display">22:00</div>
+        <div id="timeText" class="time-display">20:00</div>
       </div>
 
       <div class="controls-grid">
@@ -653,11 +655,12 @@
     }
   };
 
-  const defaultDurations = { sprint1: 22, rest: 3, sprint2: 22, reward: 12 };
-  let customDurations = safeStorage.get('focus_custom_durations', defaultDurations);
+  // مقادیر پیش‌فرض جدید: ۲۰، ۵، ۲۰، ۱۵ دقیقه
+  const defaultDurations = { sprint1: 20, rest: 5, sprint2: 20, reward: 15 };
+  let customDurations = safeStorage.get('focus_custom_durations_v2', defaultDurations);
 
   let PROTOCOL = [
-    { name: "اسپرینت ۱ (حمله دقیقه‌ای)", tag: "حمله ۱", duration: customDurations.sprint1 * 60, color: "#38bdf8", glow: "rgba(56, 189, 248, 0.4)", bg: "radial-gradient(circle at 50% 10%, #0c2340 0%, #07090e 100%)" },
+    { name: "اسپرینت ۱ (حمله ۲۰ دقیقه‌ای)", tag: "حمله ۱", duration: customDurations.sprint1 * 60, color: "#38bdf8", glow: "rgba(56, 189, 248, 0.4)", bg: "radial-gradient(circle at 50% 10%, #0c2340 0%, #07090e 100%)" },
     { name: "ریست خسته‌کننده (بدون گوشی!)", tag: "استراحت", duration: customDurations.rest * 60, color: "#64748b", glow: "rgba(100, 116, 139, 0.2)", bg: "radial-gradient(circle at 50% 10%, #050608 0%, #020304 100%)" },
     { name: "اسپرینت ۲ (تکمیل نهایی)", tag: "حمله ۲", duration: customDurations.sprint2 * 60, color: "#10b981", glow: "rgba(16, 185, 129, 0.4)", bg: "radial-gradient(circle at 50% 10%, #062b1e 0%, #07090e 100%)" },
     { name: "پاداش آزاد (تخلیه دوپامین)", tag: "پاداش", duration: customDurations.reward * 60, color: "#f59e0b", glow: "rgba(245, 158, 11, 0.4)", bg: "radial-gradient(circle at 50% 10%, #291804 0%, #07090e 100%)" }
@@ -674,22 +677,28 @@
   const startBtn = document.getElementById("startBtn");
   const anchorAlert = document.getElementById("anchorAlert");
 
-  // ماژول ساعت و تقویم اصلاح‌شده
+  // ماژول ساعت و تقویم
   function updateLiveClock() {
     const now = new Date();
     
+    // ساعت
     const h = String(now.getHours()).padStart(2, '0');
     const m = String(now.getMinutes()).padStart(2, '0');
     const s = String(now.getSeconds()).padStart(2, '0');
     document.getElementById("liveClock").innerText = `${h}:${m}:${s}`;
 
-    const shamsi = new Intl.DateTimeFormat('fa-IR', {
+    // تقویم شمسی مرتب (روز هفته + روز + ماه + سال)
+    const shamsiFormatter = new Intl.DateTimeFormat('fa-IR-u-ca-persian', {
       weekday: 'long',
       day: 'numeric',
-      month: 'long'
-    }).format(now);
-    document.getElementById("shamsiDate").innerText = shamsi;
+      month: 'long',
+      year: 'numeric'
+    });
+    const sp = {};
+    shamsiFormatter.formatToParts(now).forEach(p => { sp[p.type] = p.value; });
+    document.getElementById("shamsiDate").innerText = `${sp.weekday} ${sp.day} ${sp.month} ${sp.year}`;
 
+    // تقویم میلادی
     const miladiDay = String(now.getDate()).padStart(2, '0');
     const miladiMonth = now.toLocaleString('en-US', { month: 'short' });
     const miladiYear = now.getFullYear();
@@ -719,7 +728,7 @@
     const rew = parseInt(document.getElementById("cfgReward").value) || defaultDurations.reward;
 
     customDurations = { sprint1: s1, rest: r, sprint2: s2, reward: rew };
-    safeStorage.set('focus_custom_durations', customDurations);
+    safeStorage.set('focus_custom_durations_v2', customDurations);
 
     PROTOCOL[0].duration = s1 * 60;
     PROTOCOL[1].duration = r * 60;
@@ -735,7 +744,7 @@
 
   function resetDefaultSettings() {
     customDurations = { ...defaultDurations };
-    safeStorage.set('focus_custom_durations', customDurations);
+    safeStorage.set('focus_custom_durations_v2', customDurations);
     document.getElementById("cfgSprint1").value = defaultDurations.sprint1;
     document.getElementById("cfgRest").value = defaultDurations.rest;
     document.getElementById("cfgSprint2").value = defaultDurations.sprint2;
@@ -786,6 +795,7 @@
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
         osc.frequency.value = freq;
+        osc.type = "sine";
         osc.connect(gain);
         gain.connect(ctx.destination);
         const startTime = ctx.currentTime + i * 0.07;
