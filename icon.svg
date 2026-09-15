@@ -1,0 +1,93 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <!-- گرادینت عمیق پس‌زمینه -->
+    <radialGradient id="bgGrad" cx="50%" cy="30%" r="85%">
+      <stop offset="0%" stop-color="#0f172a" />
+      <stop offset="60%" stop-color="#07090e" />
+      <stop offset="100%" stop-color="#020408" />
+    </radialGradient>
+
+    <!-- گرادینت صاعقه و انرژی دوپامینی -->
+    <linearGradient id="dopamineGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38bdf8" />
+      <stop offset="40%" stop-color="#818cf8" />
+      <stop offset="80%" stop-color="#c084fc" />
+      <stop offset="100%" stop-color="#fb923c" />
+    </linearGradient>
+
+    <!-- گرادینت فرکانس ۴۰Hz گاما -->
+    <linearGradient id="gammaGrad" x1="0%" y1="100%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#38bdf8" />
+      <stop offset="100%" stop-color="#34d399" />
+    </linearGradient>
+
+    <!-- گرادینت هگزاگون تمرکز -->
+    <linearGradient id="hexGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="rgba(56, 189, 248, 0.4)" />
+      <stop offset="100%" stop-color="rgba(192, 132, 252, 0.15)" />
+    </linearGradient>
+
+    <!-- فیلتر نئون ملایم -->
+    <filter id="softGlow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="8" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+
+    <!-- فیلتر درخشش شدید هسته انرژی -->
+    <filter id="coreGlow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="16" result="blur1" />
+      <feGaussianBlur stdDeviation="6" result="blur2" />
+      <feMerge>
+        <feMergeNode in="blur1" />
+        <feMergeNode in="blur2" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- بستر کارت PWA (Squircle ارگونومیک) -->
+  <rect width="512" height="512" rx="136" fill="url(#bgGrad)" stroke="rgba(56, 189, 248, 0.2)" stroke-width="3" />
+
+  <!-- شبکه نامرئی مختصات و رادار تمرکز شناختی -->
+  <circle cx="256" cy="256" r="200" fill="none" stroke="rgba(255, 255, 255, 0.03)" stroke-width="1.5" />
+  <circle cx="256" cy="256" r="150" fill="none" stroke="rgba(56, 189, 248, 0.06)" stroke-width="1.5" stroke-dasharray="4 8" />
+  <line x1="256" y1="46" x2="256" y2="70" stroke="rgba(56, 189, 248, 0.3)" stroke-width="2" stroke-linecap="round" />
+  <line x1="256" y1="442" x2="256" y2="466" stroke="rgba(56, 189, 248, 0.3)" stroke-width="2" stroke-linecap="round" />
+  <line x1="46" y1="256" x2="70" y2="256" stroke="rgba(56, 189, 248, 0.3)" stroke-width="2" stroke-linecap="round" />
+  <line x1="442" y1="256" x2="466" y2="256" stroke="rgba(56, 189, 248, 0.3)" stroke-width="2" stroke-linecap="round" />
+
+  <!-- مدار بیرونی: چرخه زمانی ۲۲/۳ اسپرینت (تقسیم زمانی اضطرار بصری) -->
+  <circle cx="256" cy="256" r="185" fill="none" stroke="url(#dopamineGrad)" stroke-width="10"
+          stroke-linecap="round" stroke-dasharray="820 220" stroke-dashoffset="120" filter="url(#softGlow)" />
+
+  <!-- نودهای مداری انرژی در چرخه اسپرینت -->
+  <circle cx="256" cy="71" r="10" fill="#38bdf8" filter="url(#coreGlow)" />
+  <circle cx="433" cy="305" r="7" fill="#c084fc" filter="url(#softGlow)" />
+  <circle cx="95" cy="335" r="6" fill="#34d399" />
+
+  <!-- مدار میانی: پالس رزونانس امواج ۴۰Hz گاما -->
+  <path d="M 120 256 
+           Q 137 236, 154 256 T 188 256 T 222 256 T 256 256 
+           T 290 256 T 324 256 T 358 256 T 392 256" 
+        fill="none" stroke="url(#gammaGrad)" stroke-width="3" stroke-linecap="round" opacity="0.45" />
+
+  <!-- ساختار مرکزی ۱: هگزاگون تمرکز و مهار حواس‌پرتی (Executive Anchor) -->
+  <polygon points="256,126 360,186 360,306 256,366 152,306 152,186" 
+           fill="rgba(15, 23, 42, 0.75)" stroke="url(#hexGrad)" stroke-width="3" stroke-linejoin="round" filter="url(#softGlow)" />
+
+  <!-- ساختار مرکزی ۲: صاعقه شلیک دوپامین و غلبه بر فلج اجرایی (Task Ignition Bolt) -->
+  <path d="M 276 142 
+           L 186 270 
+           L 248 270 
+           L 230 376 
+           L 326 238 
+           L 262 238 
+           Z" 
+        fill="url(#dopamineGrad)" filter="url(#coreGlow)" />
+
+  <!-- جرقه همگام‌سازی سیناپسی در کانون صاعقه -->
+  <circle cx="254" cy="254" r="5" fill="#ffffff" filter="url(#coreGlow)" />
+</svg>
