@@ -48,25 +48,107 @@
       background: radial-gradient(circle at 50% 10%, #111827 0%, #07090e 100%);
       color: var(--text);
       display: flex;
+      flex-direction: column;
       justify-content: center;
       align-items: center;
       min-height: 100vh;
       transition: background 0.8s ease;
     }
 
+    .main-wrapper {
+      width: 100%;
+      max-width: 480px;
+      margin: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    @media (min-width: 900px) {
+      .main-wrapper {
+        max-width: 910px;
+      }
+    }
+
+    /* نوار ابزار بالا: ساعت، تاریخ و دکمه تنظیمات */
+    .top-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(15, 23, 42, 0.65);
+      border: 1px solid rgba(255, 255, 255, 0.07);
+      border-radius: 18px;
+      padding: 10px 18px;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+
+    .datetime-widget {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+
+    .clock-display {
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: var(--sprint1);
+      letter-spacing: 0.5px;
+      font-variant-numeric: tabular-nums;
+      text-shadow: 0 0 10px rgba(56, 189, 248, 0.3);
+    }
+
+    .date-display {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      font-size: 0.72rem;
+      color: var(--text-muted);
+    }
+
+    .date-shamsi {
+      color: #e2e8f0;
+      font-weight: 600;
+    }
+
+    .date-miladi {
+      color: #64748b;
+      font-size: 0.68rem;
+      direction: ltr;
+      unicode-bidi: isolate;
+      text-align: right;
+      display: inline-block;
+    }
+
+    .settings-btn {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 10px;
+      padding: 6px 12px;
+      font-size: 0.8rem;
+      cursor: pointer;
+      color: #cbd5e1;
+      min-height: auto;
+      transition: all 0.2s;
+    }
+
+    .settings-btn:hover {
+      background: rgba(56, 189, 248, 0.15);
+      border-color: var(--sprint1);
+      color: #fff;
+    }
+
     .dashboard {
       display: grid;
       grid-template-columns: 1fr;
       gap: 20px;
-      max-width: 480px;
       width: 100%;
-      margin: auto;
     }
 
     @media (min-width: 900px) {
       .dashboard {
         grid-template-columns: 410px 460px;
-        max-width: 910px;
         gap: 26px;
       }
     }
@@ -359,87 +441,201 @@
       font-weight: 700;
     }
 
+    /* پنجره مودال تنظیمات */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 999;
+      padding: 16px;
+    }
+
+    .modal-box {
+      background: #0f172a;
+      border: 1px solid rgba(56, 189, 248, 0.25);
+      border-radius: 20px;
+      width: 100%;
+      max-width: 380px;
+      padding: 20px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8);
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+
+    .modal-title {
+      font-size: 1rem;
+      font-weight: 800;
+      color: #fff;
+    }
+
+    .setting-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      font-size: 0.84rem;
+      color: #cbd5e1;
+    }
+
+    .setting-row input {
+      width: 70px;
+      text-align: center;
+      background: rgba(0, 0, 0, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: var(--sprint1);
+      padding: 6px;
+      border-radius: 8px;
+      font-weight: 700;
+      outline: none;
+    }
+
+    .setting-row input:focus { border-color: var(--sprint1); }
+
+    .modal-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 20px;
+    }
+
     @keyframes pulse { from { opacity: 0.3; } to { opacity: 1; } }
   </style>
 </head>
 <body>
 
-<div class="dashboard">
-  <div class="panel timer-panel">
-    <div id="phaseBadge" class="phase-badge">اسپرینت ۱ (حمله ۲۲ دقیقه‌ای)</div>
-    
-    <div class="timer-wrap">
-      <svg>
-        <circle class="bg-circle" cx="113" cy="113" r="98"></circle>
-        <circle id="progress" class="progress-circle" cx="113" cy="113" r="98"></circle>
-      </svg>
-      <div id="timeText" class="time-display">22:00</div>
+<div class="main-wrapper">
+  <!-- نوار ابزار بالا -->
+  <div class="top-bar">
+    <div class="datetime-widget">
+      <div id="liveClock" class="clock-display">00:00:00</div>
+      <div class="date-display">
+        <span id="shamsiDate" class="date-shamsi">درحال بارگذاری...</span>
+        <span id="miladiDate" class="date-miladi" dir="ltr">Loading...</span>
+      </div>
     </div>
-
-    <div class="controls-grid">
-      <button id="startBtn" class="primary" onclick="toggleTimer()">⚡ شروع</button>
-      <button id="noiseBtn" onclick="toggleBrownNoise()">🌊 نویز بم</button>
-      <button id="gammaBtn" onclick="toggleGammaWave()">🧠 ۴۰Hz</button>
-      <button onclick="resetTimer()">↺ ریست</button>
-      <button onclick="skipPhase()">⏭ بعدی</button>
-      <button onclick="toggleFullScreen()">⛶ فول</button>
-    </div>
-
-    <div class="anchor-box">
-      <label>
-        <span>🎯 لنگر شروع دوباره:</span>
-        <span style="color: var(--text-muted); font-size: 0.68rem;">Bookmark Hack</span>
-      </label>
-      <input id="anchorInput" type="text" placeholder="مثلاً: شروع نوشتن پاراگراف دوم...">
-      <div id="anchorAlert" class="anchor-alert">⚠️ ۳۰ ثانیه مانده! دست بکش و بلند شو.</div>
-    </div>
-
-    <div class="shortcuts-bar">
-      <span><kbd>Space</kbd> تایمر</span>
-      <span><kbd>B</kbd> نویز بم</span>
-      <span><kbd>G</kbd> موج گاما</span>
-      <span><kbd>R</kbd> ریست</span>
-    </div>
+    <button class="settings-btn" onclick="openSettingsModal()">⚙️ تنظیمات</button>
   </div>
 
-  <div class="panel">
-    <div class="xp-banner">
-      <div class="xp-header">
-        <span id="levelDisplay" class="xp-level">⚡ لول ۱ (جنگجوی دوپامین)</span>
-        <span id="xpDisplay" class="xp-points">0 / 300 XP</span>
+  <div class="dashboard">
+    <!-- پنل ۱: تایمر و فرماندهی تمرکز -->
+    <div class="panel timer-panel">
+      <div id="phaseBadge" class="phase-badge">اسپرینت ۱</div>
+      
+      <div class="timer-wrap">
+        <svg>
+          <circle class="bg-circle" cx="113" cy="113" r="98"></circle>
+          <circle id="progress" class="progress-circle" cx="113" cy="113" r="98"></circle>
+        </svg>
+        <div id="timeText" class="time-display">22:00</div>
       </div>
-      <div class="xp-bar-bg">
-        <div id="xpBarFill" class="xp-bar-fill"></div>
+
+      <div class="controls-grid">
+        <button id="startBtn" class="primary" onclick="toggleTimer()">⚡ شروع</button>
+        <button id="noiseBtn" onclick="toggleBrownNoise()">🌊 نویز بم</button>
+        <button id="gammaBtn" onclick="toggleGammaWave()">🧠 ۴۰Hz</button>
+        <button onclick="resetTimer()">↺ ریست</button>
+        <button onclick="skipPhase()">⏭ بعدی</button>
+        <button onclick="toggleFullScreen()">⛶ فول</button>
+      </div>
+
+      <div class="anchor-box">
+        <label>
+          <span>🎯 لنگر شروع دوباره:</span>
+          <span style="color: var(--text-muted); font-size: 0.68rem;">Bookmark Hack</span>
+        </label>
+        <input id="anchorInput" type="text" placeholder="مثلاً: شروع نوشتن پاراگراف دوم...">
+        <div id="anchorAlert" class="anchor-alert">⚠️ ۳۰ ثانیه مانده! دست بکش و بلند شو.</div>
+      </div>
+
+      <div class="shortcuts-bar">
+        <span><kbd>Space</kbd> تایمر</span>
+        <span><kbd>B</kbd> نویز بم</span>
+        <span><kbd>G</kbd> موج گاما</span>
+        <span><kbd>R</kbd> ریست</span>
       </div>
     </div>
 
-    <div class="section-title">
-      <span>🎯 ریز‌تسک‌های حمله <span style="font-size: 0.72rem; color: var(--purple);">+50 XP</span></span>
-      <span id="taskCount" class="badge-count">۰ تسک</span>
-    </div>
-    <div class="input-wrap">
-      <input id="newTaskInput" type="text" placeholder="اقدام ۳ تا ۱۰ دقیقه‌ای..." onkeypress="handleKey(event, addTask)">
-      <button class="primary" style="min-width: 60px;" onclick="addTask()">ثبت</button>
-    </div>
-    <ul id="taskList" class="task-list"></ul>
+    <!-- پنل ۲: گیمیفیکیشن، تسک‌ها، افکار و نوت -->
+    <div class="panel">
+      <div class="xp-banner">
+        <div class="xp-header">
+          <span id="levelDisplay" class="xp-level">⚡ لول ۱ (جنگجوی دوپامین)</span>
+          <span id="xpDisplay" class="xp-points">0 / 300 XP</span>
+        </div>
+        <div class="xp-bar-bg">
+          <div id="xpBarFill" class="xp-bar-fill"></div>
+        </div>
+      </div>
 
-    <div class="section-title" style="color: #fde68a;">
-      <span>🧠 پارک افکار مزاحم (Brain Dump)</span>
-      <span id="tangentCount" class="badge-count">۰ فکر</span>
-    </div>
-    <div class="input-wrap">
-      <input id="newTangentInput" type="text" placeholder="فکری که پرید توی سرت..." onkeypress="handleKey(event, addTangent)">
-      <button style="background: rgba(245, 158, 11, 0.15); border-color: rgba(245, 158, 11, 0.3); color: #fde68a;" onclick="addTangent()">پارک</button>
-    </div>
-    <ul id="tangentList" class="tangent-list"></ul>
+      <div class="section-title">
+        <span>🎯 ریز‌تسک‌های حمله <span style="font-size: 0.72rem; color: var(--purple);">+50 XP</span></span>
+        <span id="taskCount" class="badge-count">۰ تسک</span>
+      </div>
+      <div class="input-wrap">
+        <input id="newTaskInput" type="text" placeholder="اقدام ۳ تا ۱۰ دقیقه‌ای..." onkeypress="handleKey(event, addTask)">
+        <button class="primary" style="min-width: 60px;" onclick="addTask()">ثبت</button>
+      </div>
+      <ul id="taskList" class="task-list"></ul>
 
-    <div class="section-title">
-      <span>📝 پیش‌نویس، تمپلیت و یادداشت</span>
+      <div class="section-title" style="color: #fde68a;">
+        <span>🧠 پارک افکار مزاحم (Brain Dump)</span>
+        <span id="tangentCount" class="badge-count">۰ فکر</span>
+      </div>
+      <div class="input-wrap">
+        <input id="newTangentInput" type="text" placeholder="فکری که پرید توی سرت..." onkeypress="handleKey(event, addTangent)">
+        <button style="background: rgba(245, 158, 11, 0.15); border-color: rgba(245, 158, 11, 0.3); color: #fde68a;" onclick="addTangent()">پارک</button>
+      </div>
+      <ul id="tangentList" class="tangent-list"></ul>
+
+      <div class="section-title">
+        <span>📝 پیش‌نویس، تمپلیت و یادداشت</span>
+      </div>
+      <textarea id="notesArea" class="notes-area" placeholder="تمپلیت‌ها یا یادداشت‌های مهم..." oninput="handleNotesInput()"></textarea>
+      <div class="notes-footer">
+        <span>ذخیره خودکار ✓</span>
+        <span id="wordCountBadge" class="word-counter-badge">۰ کلمه</span>
+      </div>
     </div>
-    <textarea id="notesArea" class="notes-area" placeholder="تمپلیت‌ها یا یادداشت‌های مهم..." oninput="handleNotesInput()"></textarea>
-    <div class="notes-footer">
-      <span>ذخیره خودکار ✓</span>
-      <span id="wordCountBadge" class="word-counter-badge">۰ کلمه</span>
+  </div>
+</div>
+
+<!-- پنجره مودال تنظیمات زمان‌بندی -->
+<div id="settingsModal" class="modal-backdrop">
+  <div class="modal-box">
+    <div class="modal-header">
+      <span class="modal-title">⚙️ تنظیمات زمان فازها (دقیقه)</span>
+      <button class="delete-btn" onclick="closeSettingsModal()">✕</button>
+    </div>
+    
+    <div class="setting-row">
+      <label for="cfgSprint1">اسپرینت ۱ (حمله اول):</label>
+      <input id="cfgSprint1" type="number" min="1" max="90">
+    </div>
+    <div class="setting-row">
+      <label for="cfgRest">ریست و استراحت:</label>
+      <input id="cfgRest" type="number" min="1" max="30">
+    </div>
+    <div class="setting-row">
+      <label for="cfgSprint2">اسپرینت ۲ (حمله دوم):</label>
+      <input id="cfgSprint2" type="number" min="1" max="90">
+    </div>
+    <div class="setting-row">
+      <label for="cfgReward">پاداش آزاد (تخلیه دوپامین):</label>
+      <input id="cfgReward" type="number" min="1" max="60">
+    </div>
+
+    <div class="modal-actions">
+      <button class="primary" style="flex: 1;" onclick="saveCustomSettings()">ذخیره تغییرات</button>
+      <button style="flex: 1;" onclick="resetDefaultSettings()">پیش‌فرض</button>
     </div>
   </div>
 </div>
@@ -457,11 +653,14 @@
     }
   };
 
-  const PROTOCOL = [
-    { name: "اسپرینت ۱ (حمله ۲۲ دقیقه‌ای)", tag: "حمله ۱", duration: 22 * 60, color: "#38bdf8", glow: "rgba(56, 189, 248, 0.4)", bg: "radial-gradient(circle at 50% 10%, #0c2340 0%, #07090e 100%)" },
-    { name: "ریست خسته‌کننده (بدون گوشی!)", tag: "استراحت", duration: 3 * 60, color: "#64748b", glow: "rgba(100, 116, 139, 0.2)", bg: "radial-gradient(circle at 50% 10%, #050608 0%, #020304 100%)" },
-    { name: "اسپرینت ۲ (تکمیل نهایی)", tag: "حمله ۲", duration: 22 * 60, color: "#10b981", glow: "rgba(16, 185, 129, 0.4)", bg: "radial-gradient(circle at 50% 10%, #062b1e 0%, #07090e 100%)" },
-    { name: "پاداش آزاد (تخلیه دوپامین)", tag: "پاداش", duration: 12 * 60, color: "#f59e0b", glow: "rgba(245, 158, 11, 0.4)", bg: "radial-gradient(circle at 50% 10%, #291804 0%, #07090e 100%)" }
+  const defaultDurations = { sprint1: 22, rest: 3, sprint2: 22, reward: 12 };
+  let customDurations = safeStorage.get('focus_custom_durations', defaultDurations);
+
+  let PROTOCOL = [
+    { name: "اسپرینت ۱ (حمله دقیقه‌ای)", tag: "حمله ۱", duration: customDurations.sprint1 * 60, color: "#38bdf8", glow: "rgba(56, 189, 248, 0.4)", bg: "radial-gradient(circle at 50% 10%, #0c2340 0%, #07090e 100%)" },
+    { name: "ریست خسته‌کننده (بدون گوشی!)", tag: "استراحت", duration: customDurations.rest * 60, color: "#64748b", glow: "rgba(100, 116, 139, 0.2)", bg: "radial-gradient(circle at 50% 10%, #050608 0%, #020304 100%)" },
+    { name: "اسپرینت ۲ (تکمیل نهایی)", tag: "حمله ۲", duration: customDurations.sprint2 * 60, color: "#10b981", glow: "rgba(16, 185, 129, 0.4)", bg: "radial-gradient(circle at 50% 10%, #062b1e 0%, #07090e 100%)" },
+    { name: "پاداش آزاد (تخلیه دوپامین)", tag: "پاداش", duration: customDurations.reward * 60, color: "#f59e0b", glow: "rgba(245, 158, 11, 0.4)", bg: "radial-gradient(circle at 50% 10%, #291804 0%, #07090e 100%)" }
   ];
 
   let currentPhase = 0;
@@ -475,7 +674,76 @@
   const startBtn = document.getElementById("startBtn");
   const anchorAlert = document.getElementById("anchorAlert");
 
-  // موتور صوتی افکت‌ها و فیدبک‌های صوتی (آنلاک‌شده برای وب‌کیت و موبایل)
+  // ماژول ساعت و تقویم اصلاح‌شده
+  function updateLiveClock() {
+    const now = new Date();
+    
+    const h = String(now.getHours()).padStart(2, '0');
+    const m = String(now.getMinutes()).padStart(2, '0');
+    const s = String(now.getSeconds()).padStart(2, '0');
+    document.getElementById("liveClock").innerText = `${h}:${m}:${s}`;
+
+    const shamsi = new Intl.DateTimeFormat('fa-IR', {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long'
+    }).format(now);
+    document.getElementById("shamsiDate").innerText = shamsi;
+
+    const miladiDay = String(now.getDate()).padStart(2, '0');
+    const miladiMonth = now.toLocaleString('en-US', { month: 'short' });
+    const miladiYear = now.getFullYear();
+    document.getElementById("miladiDate").innerText = `${miladiDay} ${miladiMonth} ${miladiYear}`;
+  }
+  setInterval(updateLiveClock, 1000);
+  updateLiveClock();
+
+  // مدیریت پنجره مودال تنظیمات
+  const modal = document.getElementById("settingsModal");
+  function openSettingsModal() {
+    document.getElementById("cfgSprint1").value = customDurations.sprint1;
+    document.getElementById("cfgRest").value = customDurations.rest;
+    document.getElementById("cfgSprint2").value = customDurations.sprint2;
+    document.getElementById("cfgReward").value = customDurations.reward;
+    modal.style.display = "flex";
+  }
+
+  function closeSettingsModal() {
+    modal.style.display = "none";
+  }
+
+  function saveCustomSettings() {
+    const s1 = parseInt(document.getElementById("cfgSprint1").value) || defaultDurations.sprint1;
+    const r = parseInt(document.getElementById("cfgRest").value) || defaultDurations.rest;
+    const s2 = parseInt(document.getElementById("cfgSprint2").value) || defaultDurations.sprint2;
+    const rew = parseInt(document.getElementById("cfgReward").value) || defaultDurations.reward;
+
+    customDurations = { sprint1: s1, rest: r, sprint2: s2, reward: rew };
+    safeStorage.set('focus_custom_durations', customDurations);
+
+    PROTOCOL[0].duration = s1 * 60;
+    PROTOCOL[1].duration = r * 60;
+    PROTOCOL[2].duration = s2 * 60;
+    PROTOCOL[3].duration = rew * 60;
+
+    if (!timerId) {
+      timeLeft = PROTOCOL[currentPhase].duration;
+      updateDisplay();
+    }
+    closeSettingsModal();
+  }
+
+  function resetDefaultSettings() {
+    customDurations = { ...defaultDurations };
+    safeStorage.set('focus_custom_durations', customDurations);
+    document.getElementById("cfgSprint1").value = defaultDurations.sprint1;
+    document.getElementById("cfgRest").value = defaultDurations.rest;
+    document.getElementById("cfgSprint2").value = defaultDurations.sprint2;
+    document.getElementById("cfgReward").value = defaultDurations.reward;
+    saveCustomSettings();
+  }
+
+  // موتور صوتی افکت‌های رابط کاربری
   let sfxCtx = null;
   function getSfxCtx() {
     try {
@@ -510,7 +778,6 @@
     } catch(e) {}
   }
 
-  // صدای دینگ پاداش هنگام تیک خوردن تسک
   function playRewardChime() {
     try {
       const ctx = getSfxCtx();
@@ -519,7 +786,6 @@
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
         osc.frequency.value = freq;
-        osc.type = "sine";
         osc.connect(gain);
         gain.connect(ctx.destination);
         const startTime = ctx.currentTime + i * 0.07;
@@ -531,7 +797,6 @@
     } catch(e) {}
   }
 
-  // صدای شیپور پیروزی هنگام لول‌آپ
   function playLevelUpFanfare() {
     try {
       const ctx = getSfxCtx();
@@ -552,7 +817,7 @@
     } catch(e) {}
   }
 
-  // پلیر فایل‌های MP3 نویز بم و موج ۴۰ هرتز (مقاوم در برابر مسدودسازی iOS)
+  // پلیر MP3
   const brownAudio = new Audio('./brown.mp3');
   brownAudio.loop = true;
 
@@ -625,7 +890,6 @@
     const offset = CIRCLE_LENGTH - (timeLeft / total) * CIRCLE_LENGTH;
     circle.style.strokeDashoffset = offset;
 
-    // هشدار ۳۰ ثانیه پایانی لنگر بازیابی تمرکز
     if (currentPhase === 0 && timeLeft <= 30 && timeLeft > 0) {
       anchorAlert.style.display = "block";
       if (timeLeft === 30) playTone(587, 0.4);
