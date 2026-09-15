@@ -214,8 +214,8 @@
       box-shadow: 0 4px 15px rgba(56, 189, 248, 0.3);
     }
 
-    button.active-noise { background: rgba(16, 185, 129, 0.15); color: #34d399; border-color: #34d399; }
-    button.active-gamma { background: rgba(251, 146, 60, 0.15); color: #fb923c; border-color: #fb923c; }
+    button.active-noise { background: rgba(16, 185, 129, 0.2); color: #34d399; border-color: #34d399; box-shadow: 0 0 10px rgba(52, 211, 153, 0.3); }
+    button.active-gamma { background: rgba(251, 146, 60, 0.2); color: #fb923c; border-color: #fb923c; box-shadow: 0 0 10px rgba(251, 146, 60, 0.3); }
 
     .anchor-box { margin-top: 18px; width: 100%; text-align: right; }
     .anchor-box label {
@@ -475,38 +475,26 @@
   const startBtn = document.getElementById("startBtn");
   const anchorAlert = document.getElementById("anchorAlert");
 
-  // موتور صوتی اختصاصی آنلاک‌شده برای موبایل و وب‌کیت
-  let audioCtx = null;
-
-  function unlockAudio() {
+  // موتور صوتی افکت‌ها و فیدبک‌های صوتی (آنلاک‌شده برای وب‌کیت و موبایل)
+  let sfxCtx = null;
+  function getSfxCtx() {
     try {
-      if (!audioCtx) {
+      if (!sfxCtx) {
         const AudioClass = window.AudioContext || window.webkitAudioContext;
-        if (AudioClass) audioCtx = new AudioClass();
+        if (AudioClass) sfxCtx = new AudioClass();
       }
-      if (audioCtx && audioCtx.state === 'suspended') {
-        audioCtx.resume();
-      }
-      // شلیک پالس صامت برای خروج از محدودیت سخت‌افزاری مرورگرهای موبایل
-      if (audioCtx) {
-        const buffer = audioCtx.createBuffer(1, 1, 22050);
-        const source = audioCtx.createBufferSource();
-        source.buffer = buffer;
-        source.connect(audioCtx.destination);
-        source.start(0);
-      }
+      if (sfxCtx && sfxCtx.state === 'suspended') sfxCtx.resume();
     } catch(e) {}
-    return audioCtx;
+    return sfxCtx;
   }
 
-  // آنلاک با اولین لمس یا کلیک در کل صفحه
-  window.addEventListener('touchstart', unlockAudio, { passive: true });
-  window.addEventListener('touchend', unlockAudio, { passive: true });
-  window.addEventListener('click', unlockAudio, { passive: true });
+  ['touchstart', 'click'].forEach(evt => {
+    window.addEventListener(evt, () => { getSfxCtx(); }, { passive: true, once: true });
+  });
 
   function playTone(freq, duration) {
     try {
-      const ctx = unlockAudio();
+      const ctx = getSfxCtx();
       if (!ctx) return;
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
@@ -514,40 +502,39 @@
       osc.type = "sine";
       osc.connect(gain);
       gain.connect(ctx.destination);
-      
       const now = ctx.currentTime;
-      gain.gain.setValueAtTime(0.35, now);
+      gain.gain.setValueAtTime(0.3, now);
       gain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
-      
       osc.start(now);
       osc.stop(now + duration);
     } catch(e) {}
   }
 
+  // صدای دینگ پاداش هنگام تیک خوردن تسک
   function playRewardChime() {
     try {
-      const ctx = unlockAudio();
+      const ctx = getSfxCtx();
       if (!ctx) return;
       [523.25, 659.25, 783.99, 1046.50].forEach((freq, i) => {
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
         osc.frequency.value = freq;
+        osc.type = "sine";
         osc.connect(gain);
         gain.connect(ctx.destination);
-        
-        const startTime = ctx.currentTime + i * 0.08;
-        gain.gain.setValueAtTime(0.3, startTime);
-        gain.gain.exponentialRampToValueAtTime(0.0001, startTime + 0.35);
-        
+        const startTime = ctx.currentTime + i * 0.07;
+        gain.gain.setValueAtTime(0.25, startTime);
+        gain.gain.exponentialRampToValueAtTime(0.0001, startTime + 0.3);
         osc.start(startTime);
-        osc.stop(startTime + 0.35);
+        osc.stop(startTime + 0.3);
       });
     } catch(e) {}
   }
 
+  // صدای شیپور پیروزی هنگام لول‌آپ
   function playLevelUpFanfare() {
     try {
-      const ctx = unlockAudio();
+      const ctx = getSfxCtx();
       if (!ctx) return;
       [440, 554.37, 659.25, 880].forEach((freq, i) => {
         const osc = ctx.createOscillator();
@@ -556,102 +543,57 @@
         osc.frequency.value = freq;
         osc.connect(gain);
         gain.connect(ctx.destination);
-        
         const startTime = ctx.currentTime + i * 0.09;
         gain.gain.setValueAtTime(0.3, startTime);
         gain.gain.exponentialRampToValueAtTime(0.0001, startTime + 0.6);
-        
         osc.start(startTime);
         osc.stop(startTime + 0.6);
       });
     } catch(e) {}
   }
 
-  // ۱. نویز بم تقویت‌شده (Brown Noise)
-  let noiseNode = null, isNoisePlaying = false, noiseGainNode = null;
+  // پلیر فایل‌های MP3 نویز بم و موج ۴۰ هرتز (مقاوم در برابر مسدودسازی iOS)
+  const brownAudio = new Audio('./brown.mp3');
+  brownAudio.loop = true;
+
+  const gammaAudio = new Audio('./gamma.mp3');
+  gammaAudio.loop = true;
+
   function toggleBrownNoise() {
     const btn = document.getElementById("noiseBtn");
-    const ctx = unlockAudio();
-    if (!ctx) return;
-
-    if (isNoisePlaying) {
-      if (noiseNode) {
-        try { noiseNode.stop(); noiseNode.disconnect(); } catch(e) {}
-        noiseNode = null;
-      }
-      if (noiseGainNode) {
-        try { noiseGainNode.disconnect(); } catch(e) {}
-        noiseGainNode = null;
-      }
-      isNoisePlaying = false;
+    if (!brownAudio.paused) {
+      brownAudio.pause();
       btn.classList.remove("active-noise");
       btn.innerText = "🌊 نویز بم";
     } else {
-      const bufferSize = ctx.sampleRate * 3;
-      const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
-      const data = buffer.getChannelData(0);
-      let lastOut = 0.0;
-      for (let i = 0; i < bufferSize; i++) {
-        const white = Math.random() * 2 - 1;
-        data[i] = (lastOut + (0.02 * white)) / 1.02;
-        lastOut = data[i];
-        data[i] *= 4.2; // دامنه تقویت‌شده نویز بم
-      }
-      noiseNode = ctx.createBufferSource();
-      noiseNode.buffer = buffer;
-      noiseNode.loop = true;
+      gammaAudio.pause();
+      document.getElementById("gammaBtn").classList.remove("active-gamma");
+      document.getElementById("gammaBtn").innerText = "🧠 ۴۰Hz";
       
-      noiseGainNode = ctx.createGain();
-      noiseGainNode.gain.setValueAtTime(0.45, ctx.currentTime);
-      noiseNode.connect(noiseGainNode);
-      noiseGainNode.connect(ctx.destination);
-      
-      noiseNode.start(0);
-      isNoisePlaying = true;
+      brownAudio.play().catch(() => {});
       btn.classList.add("active-noise");
       btn.innerText = "قطع نویز 🔊";
     }
   }
 
-  // ۲. موج باینورال ۴۰Hz تقویت‌شده
-  let gammaOscL = null, gammaOscR = null, isGammaPlaying = false, gammaGainNode = null;
   function toggleGammaWave() {
     const btn = document.getElementById("gammaBtn");
-    const ctx = unlockAudio();
-    if (!ctx) return;
-
-    if (isGammaPlaying) {
-      if (gammaOscL) { try { gammaOscL.stop(); gammaOscL.disconnect(); } catch(e) {} gammaOscL = null; }
-      if (gammaOscR) { try { gammaOscR.stop(); gammaOscR.disconnect(); } catch(e) {} gammaOscR = null; }
-      if (gammaGainNode) { try { gammaGainNode.disconnect(); } catch(e) {} gammaGainNode = null; }
-      isGammaPlaying = false;
+    if (!gammaAudio.paused) {
+      gammaAudio.pause();
       btn.classList.remove("active-gamma");
       btn.innerText = "🧠 ۴۰Hz";
     } else {
-      const merger = ctx.createChannelMerger(2);
-      gammaGainNode = ctx.createGain();
-      gammaGainNode.gain.setValueAtTime(0.3, ctx.currentTime);
-
-      gammaOscL = ctx.createOscillator();
-      gammaOscL.frequency.value = 200;
-      gammaOscL.connect(merger, 0, 0);
-
-      gammaOscR = ctx.createOscillator();
-      gammaOscR.frequency.value = 240;
-      gammaOscR.connect(merger, 0, 1);
-
-      merger.connect(gammaGainNode);
-      gammaGainNode.connect(ctx.destination);
-
-      gammaOscL.start(0);
-      gammaOscR.start(0);
-
-      isGammaPlaying = true;
+      brownAudio.pause();
+      document.getElementById("noiseBtn").classList.remove("active-noise");
+      document.getElementById("noiseBtn").innerText = "🌊 نویز بم";
+      
+      gammaAudio.play().catch(() => {});
       btn.classList.add("active-gamma");
       btn.innerText = "قطع ۴۰Hz ⚡";
     }
   }
 
+  // سیستم لول و امتیاز XP
   let xp = safeStorage.get('focus_xp', 0);
   const XP_PER_LEVEL = 300;
 
@@ -683,6 +625,7 @@
     const offset = CIRCLE_LENGTH - (timeLeft / total) * CIRCLE_LENGTH;
     circle.style.strokeDashoffset = offset;
 
+    // هشدار ۳۰ ثانیه پایانی لنگر بازیابی تمرکز
     if (currentPhase === 0 && timeLeft <= 30 && timeLeft > 0) {
       anchorAlert.style.display = "block";
       if (timeLeft === 30) playTone(587, 0.4);
@@ -703,7 +646,7 @@
   }
 
   function toggleTimer() {
-    unlockAudio();
+    getSfxCtx();
     if (timerId) {
       clearInterval(timerId);
       timerId = null;
@@ -797,9 +740,11 @@
   }
 
   function toggleTask(index) {
-    unlockAudio();
     tasks[index].completed = !tasks[index].completed;
-    if (tasks[index].completed) { playRewardChime(); addXP(50); }
+    if (tasks[index].completed) {
+      playRewardChime();
+      addXP(50);
+    }
     renderTasks();
   }
 
