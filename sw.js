@@ -1,9 +1,11 @@
-const CACHE_NAME = 'focus-pwa-v2';
+const CACHE_NAME = 'focus-pwa-v4';
 const ASSETS = [
   './',
   './index.html',
   './manifest.json',
-  './icon.svg'
+  './icon.svg',
+  './brown.mp3',
+  './gamma.mp3'
 ];
 
 self.addEventListener('install', (e) => {
@@ -26,7 +28,6 @@ self.addEventListener('activate', (e) => {
   self.clients.claim();
 });
 
-// استراتژی اولویت با شبکه: فایل‌های جدید را مستقیم از گیت‌هاب بگیرد
 self.addEventListener('fetch', (e) => {
   e.respondWith(
     fetch(e.request)
