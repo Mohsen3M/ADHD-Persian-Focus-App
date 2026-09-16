@@ -189,7 +189,7 @@
       border: 1px solid rgba(192, 132, 252, 0.25);
       border-radius: 16px;
       padding: 12px 16px;
-      margin-bottom: 20px;
+      margin-bottom: 12px;
       display: flex;
       flex-direction: column;
       gap: 8px;
@@ -222,6 +222,77 @@
       border-radius: 10px;
       box-shadow: 0 0 10px var(--purple);
       transition: width 0.4s ease;
+    }
+
+    /* استایل زنجیره پیوستگی ۷ روزه */
+    .streak-container {
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 16px;
+      padding: 10px 14px;
+      margin-bottom: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .streak-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 0.78rem;
+      font-weight: 700;
+    }
+
+    .streak-count {
+      color: #fb923c;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .streak-days {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 6px;
+    }
+
+    .streak-day-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .streak-day-name {
+      font-size: 0.64rem;
+      color: #64748b;
+    }
+
+    .streak-dot {
+      width: 24px;
+      height: 24px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.65rem;
+      color: #64748b;
+      transition: all 0.3s;
+    }
+
+    .streak-dot.active {
+      background: rgba(16, 185, 129, 0.2);
+      border-color: #10b981;
+      color: #34d399;
+      box-shadow: 0 0 10px rgba(16, 185, 129, 0.35);
+      font-weight: 800;
+    }
+
+    .streak-dot.today {
+      border-color: var(--sprint1);
     }
 
     .timer-panel { align-items: center; text-align: center; }
@@ -383,7 +454,7 @@
       color: var(--text-muted);
     }
 
-    .input-wrap { display: flex; gap: 8px; margin-bottom: 12px; }
+    .input-wrap { display: flex; gap: 8px; margin-bottom: 6px; }
     .input-wrap input {
       flex: 1;
       background: rgba(0, 0, 0, 0.45);
@@ -395,6 +466,14 @@
       outline: none;
     }
     .input-wrap input:focus { border-color: var(--sprint1); }
+
+    .rule3-alert {
+      font-size: 0.72rem;
+      color: var(--danger);
+      font-weight: 700;
+      margin-bottom: 10px;
+      display: none;
+    }
 
     .task-list, .tangent-list {
       list-style: none;
@@ -420,6 +499,15 @@
     .item-row label { display: flex; align-items: center; gap: 10px; cursor: pointer; flex: 1; }
     .item-row input[type="checkbox"] { accent-color: var(--sprint2); width: 17px; height: 17px; }
 
+    .task-badge-num {
+      font-size: 0.7rem;
+      font-weight: 800;
+      background: rgba(56, 189, 248, 0.15);
+      color: var(--sprint1);
+      padding: 1px 6px;
+      border-radius: 6px;
+    }
+
     .tangent-row { background: rgba(245, 158, 11, 0.05); border-color: rgba(245, 158, 11, 0.15); color: #fde68a; }
 
     .delete-btn { background: transparent; border: none; color: #64748b; padding: 4px 8px; font-size: 1rem; cursor: pointer; }
@@ -427,7 +515,7 @@
 
     .notes-area {
       width: 100%;
-      height: 90px;
+      height: 80px;
       background: rgba(0, 0, 0, 0.45);
       border: 1px solid rgba(255, 255, 255, 0.08);
       border-radius: 12px;
@@ -582,8 +670,9 @@
       </div>
     </div>
 
-    <!-- پنل ۲: تسک‌ها و افکار -->
+    <!-- پنل ۲: گیمیفیکیشن، ۳ اقدام روزانه، افکار و نوت -->
     <div class="panel">
+      <!-- بنر لول و امتیاز -->
       <div class="xp-banner">
         <div class="xp-header">
           <span id="levelDisplay" class="xp-level">...</span>
@@ -594,18 +683,30 @@
         </div>
       </div>
 
+      <!-- زنجیره پیوستگی ۷ روزه -->
+      <div class="streak-container">
+        <div class="streak-top">
+          <span id="lblStreakTitle" style="color: #cbd5e1;">🔥 زنجیره تمرکز مداوم</span>
+          <span id="streakDisplay" class="streak-count">۰ روز زنجیره</span>
+        </div>
+        <div id="streakDaysRow" class="streak-days"></div>
+      </div>
+
+      <!-- بخش ۳ اقدام اصلی روز (قانون ۳ اقدام) -->
       <div class="section-title">
-        <span id="lblTasks">🎯 Sprint Action Steps <span style="font-size: 0.72rem; color: var(--purple);">+50 XP</span></span>
-        <span id="taskCount" class="badge-count">0 Tasks</span>
+        <span id="lblTasks">🎯 ۳ اقدام اصلی امروز <span style="font-size: 0.72rem; color: var(--purple);">+50 XP</span></span>
+        <span id="taskCount" class="badge-count">۰ از ۳</span>
       </div>
       <div class="input-wrap">
         <input id="newTaskInput" type="text" placeholder="..." onkeypress="handleKey(event, addTask)">
         <button id="addTaskBtn" class="primary" style="min-width: 60px;" onclick="addTask()">Add</button>
       </div>
+      <div id="rule3Alert" class="rule3-alert">⚠️ حداکثر ۳ اقدام! برای باز شدن جا، اول یکی از کارهای بالا رو تموم کن.</div>
       <ul id="taskList" class="task-list"></ul>
 
+      <!-- افکار مزاحم -->
       <div class="section-title" style="color: #fde68a;">
-        <span id="lblTangents">🧠 Brain Dump (Distractions)</span>
+        <span id="lblTangents">🧠 پارک افکار مزاحم (Brain Dump)</span>
         <span id="tangentCount" class="badge-count">0 Items</span>
       </div>
       <div class="input-wrap">
@@ -614,6 +715,7 @@
       </div>
       <ul id="tangentList" class="tangent-list"></ul>
 
+      <!-- نوت و پیش‌نویس سریع -->
       <div class="section-title">
         <span id="lblNotes">📝 Drafts & Notes</span>
       </div>
@@ -757,10 +859,13 @@
       scReset: 'ریست',
       levelPrefix: '⚡ لول',
       levelTitle: '(جنگجوی دوپامین)',
-      tasksTitle: '🎯 ریز‌تسک‌های حمله',
-      taskPlaceholder: 'اقدام ۳ تا ۱۰ دقیقه‌ای...',
+      streakTitle: '🔥 زنجیره تمرکز پیوسته',
+      streakUnit: 'روز زنجیره',
+      tasksTitle: '🎯 ۳ اقدام طلایی امروز',
+      taskPlaceholder: 'اقدام مشخص برای امروز...',
       taskBtn: 'ثبت',
-      taskUnit: 'تسک',
+      taskUnit: 'از ۳ اقدام',
+      rule3Warn: '⚠️ سقف ۳ کار پر شد! برای جلوگیری از انباشتگی، اول یکی رو تموم کن.',
       tangentsTitle: '🧠 پارک افکار مزاحم (Brain Dump)',
       tangentPlaceholder: 'فکری که پرید توی سرت...',
       tangentBtn: 'پارک',
@@ -776,6 +881,7 @@
       cfgReward: 'پاداش آزاد (تخلیه دوپامین):',
       saveChanges: 'ذخیره تغییرات',
       defaultBtn: 'پیش‌فرض',
+      daysShort: ['ش', 'ی', 'د', 'س', 'چ', 'پ', 'ج'],
       phases: [
         { name: "اسپرینت ۱ (حمله تمرکز)", tag: "حمله ۱" },
         { name: "ریست خسته‌کننده (بدون گوشی!)", tag: "استراحت" },
@@ -805,10 +911,13 @@
       scReset: 'Reset',
       levelPrefix: '⚡ Level',
       levelTitle: '(Dopamine Warrior)',
-      tasksTitle: '🎯 Action Steps',
-      taskPlaceholder: '3 to 10 min action step...',
+      streakTitle: '🔥 Focus Habit Streak',
+      streakUnit: 'Day Streak',
+      tasksTitle: '🎯 Daily Big 3 Actions',
+      taskPlaceholder: 'Major action for today...',
       taskBtn: 'Add',
-      taskUnit: 'Tasks',
+      taskUnit: 'of 3 Actions',
+      rule3Warn: '⚠️ Max 3 goals! Finish one first to prevent overwhelm.',
       tangentsTitle: '🧠 Brain Dump',
       tangentPlaceholder: 'Distraction that jumped in...',
       tangentBtn: 'Park',
@@ -824,6 +933,7 @@
       cfgReward: 'Free Reward (Dopamine):',
       saveChanges: 'Save Changes',
       defaultBtn: 'Default',
+      daysShort: ['S', 'M', 'T', 'W', 'T', 'F', 'S'],
       phases: [
         { name: "Sprint 1 (Focus Sprint)", tag: "Sprint 1" },
         { name: "Boring Reset (No Screens)", tag: "Rest" },
@@ -884,9 +994,12 @@
     document.getElementById("scGamma").innerText = t.scGamma;
     document.getElementById("scReset").innerText = t.scReset;
 
+    document.getElementById("lblStreakTitle").innerText = t.streakTitle;
+
     document.getElementById("lblTasks").innerHTML = `${t.tasksTitle} <span style="font-size: 0.72rem; color: var(--purple);">+50 XP</span>`;
     document.getElementById("newTaskInput").placeholder = t.taskPlaceholder;
     document.getElementById("addTaskBtn").innerText = t.taskBtn;
+    document.getElementById("rule3Alert").innerText = t.rule3Warn;
 
     document.getElementById("lblTangents").innerText = t.tangentsTitle;
     document.getElementById("newTangentInput").placeholder = t.tangentPlaceholder;
@@ -907,6 +1020,7 @@
     updatePhaseStyles();
     updateDisplay();
     renderXP();
+    renderStreak();
     renderTasks();
     renderTangents();
     handleNotesInput();
@@ -1123,7 +1237,6 @@
   let xp = safeStorage.get('focus_xp', 0);
   const XP_PER_LEVEL = 300;
 
-  /* اصلاح‌شده: جلوگیری از منفی شدن و هماهنگی با کاهش امتیاز */
   function addXP(amount) {
     const oldLevel = Math.floor(xp / XP_PER_LEVEL) + 1;
     xp = Math.max(0, xp + amount);
@@ -1144,6 +1257,85 @@
     document.getElementById("levelDisplay").innerText = `${t.levelPrefix} ${currentLevel} ${t.levelTitle}`;
     document.getElementById("xpDisplay").innerText = `${currentLevelXP} / ${XP_PER_LEVEL} XP`;
     document.getElementById("xpBarFill").style.width = `${percent}%`;
+  }
+
+  /* سیستم ثبت پیوستگی (Streak System) */
+  function getTodayString() {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+  }
+
+  function markTodayActive() {
+    const today = getTodayString();
+    let days = safeStorage.get('focus_active_days', []);
+    if (!days.includes(today)) {
+      days.push(today);
+      safeStorage.set('focus_active_days', days);
+    }
+    renderStreak();
+  }
+
+  function calculateStreak(days) {
+    if (!days || days.length === 0) return 0;
+    const set = new Set(days);
+    let streak = 0;
+    let d = new Date();
+    
+    // اگر امروز خوانده بود
+    const todayStr = getTodayString();
+    if (!set.has(todayStr)) {
+      // اگر امروز نخوانده بود، چک کنیم آیا زنجیره دیروز ادامه دارد
+      d.setDate(d.getDate() - 1);
+    }
+
+    while (true) {
+      const s = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+      if (set.has(s)) {
+        streak++;
+        d.setDate(d.getDate() - 1);
+      } else {
+        break;
+      }
+    }
+    return streak;
+  }
+
+  function renderStreak() {
+    const t = TRANSLATIONS[currentLang];
+    const days = safeStorage.get('focus_active_days', []);
+    const streak = calculateStreak(days);
+    document.getElementById("streakDisplay").innerText = `🔥 ${streak} ${t.streakUnit}`;
+
+    const container = document.getElementById("streakDaysRow");
+    container.innerHTML = "";
+
+    const todayStr = getTodayString();
+    const daySet = new Set(days);
+
+    // تولید ۷ روز اخیر
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      const dateKey = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+      
+      const isActive = daySet.has(dateKey);
+      const isToday = (dateKey === todayStr);
+
+      const dayIndex = d.getDay(); // 0 is Sun, 6 is Sat
+      const label = currentLang === 'fa' 
+        ? t.daysShort[(dayIndex + 1) % 7] // تبدیل به ترتیب هفته شمس: شنبه تا جمعه
+        : t.daysShort[dayIndex];
+
+      const div = document.createElement("div");
+      div.className = "streak-day-item";
+      div.innerHTML = `
+        <span class="streak-day-name">${label}</span>
+        <div class="streak-dot ${isActive ? 'active' : ''} ${isToday ? 'today' : ''}">
+          ${isActive ? '✓' : ''}
+        </div>
+      `;
+      container.appendChild(div);
+    }
   }
 
   function updateDisplay() {
@@ -1201,7 +1393,10 @@
         } else {
           playTone(880, 0.9);
           triggerVibration([250, 150, 250, 150, 500]);
-          if (currentPhase === 0 || currentPhase === 2) addXP(100);
+          if (currentPhase === 0 || currentPhase === 2) {
+            addXP(100);
+            markTodayActive(); // ثبت فعالیت و امتداد زنجیره
+          }
           nextPhase();
         }
       }, 1000);
@@ -1252,17 +1447,21 @@
     else if (e.key === 'n' || e.key === 'N' || e.key === 'د') skipPhase();
   });
 
-  let tasks = safeStorage.get('adhd_tasks', []);
+  /* مدیریت ۳ اقدام روزانه (Rule of 3) */
+  let tasks = safeStorage.get('adhd_tasks_v3', []);
   function renderTasks() {
     const t = TRANSLATIONS[currentLang];
     const list = document.getElementById("taskList");
     const countBadge = document.getElementById("taskCount");
+    const alertBox = document.getElementById("rule3Alert");
+    
     list.innerHTML = "";
     tasks.forEach((task, index) => {
       const li = document.createElement("li");
       li.className = `item-row ${task.completed ? 'completed' : ''}`;
       li.innerHTML = `
         <label>
+          <span class="task-badge-num">${index + 1}</span>
           <input type="checkbox" ${task.completed ? 'checked' : ''} onchange="toggleTask(${index})">
           <span>${task.text}</span>
         </label>
@@ -1270,14 +1469,29 @@
       `;
       list.appendChild(li);
     });
+
     countBadge.innerText = `${tasks.length} ${t.taskUnit}`;
-    safeStorage.set('adhd_tasks', tasks);
+    safeStorage.set('adhd_tasks_v3', tasks);
+
+    if (tasks.length < 3) {
+      alertBox.style.display = "none";
+    }
   }
 
   function addTask() {
     const input = document.getElementById("newTaskInput");
+    const alertBox = document.getElementById("rule3Alert");
     const val = input.value.trim();
+
+    // محدودیت سفت‌وسخت ۳ اقدام طلایی روز
+    if (tasks.length >= 3) {
+      alertBox.style.display = "block";
+      triggerVibration([80, 50, 80]);
+      return;
+    }
+
     if (val) {
+      alertBox.style.display = "none";
       tasks.push({ text: val, completed: false });
       input.value = "";
       renderTasks();
@@ -1285,7 +1499,6 @@
     }
   }
 
-  /* اصلاح‌شده: کسر امتیاز در زمان برداشتن تیک */
   function toggleTask(index) {
     tasks[index].completed = !tasks[index].completed;
     if (tasks[index].completed) {
