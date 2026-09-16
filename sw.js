@@ -1,4 +1,4 @@
-const CACHE_NAME = 'focus-pwa-v10';
+const CACHE_NAME = 'focus-pwa-v11';
 const ASSETS = [
   './',
   './index.html',
