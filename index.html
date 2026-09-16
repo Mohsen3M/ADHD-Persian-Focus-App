@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Dopamine Focus Engine</title>
+  <title>Dopamine Focus Engine | موتور تمرکز دوپامینی</title>
   
   <link rel="manifest" href="manifest.json">
   <link rel="icon" href="./icon.svg" type="image/svg+xml">
@@ -15,7 +15,7 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Vazirmatn:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 
   <style>
     :root {
@@ -37,9 +37,17 @@
 
     * {
       box-sizing: border-box;
-      font-family: 'Vazirmatn', -apple-system, BlinkMacSystemFont, Tahoma, sans-serif;
       -webkit-tap-highlight-color: transparent;
       touch-action: manipulation;
+    }
+
+    html[lang="fa"] * {
+      font-family: 'Vazirmatn', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+
+    html[lang="en"] * {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      letter-spacing: -0.01em;
     }
 
     body {
@@ -70,7 +78,6 @@
       }
     }
 
-    /* نوار ابزار بالا: ساعت، تاریخ و دکمه تنظیمات */
     .top-bar {
       display: flex;
       justify-content: space-between;
@@ -91,7 +98,7 @@
     }
 
     .clock-display {
-      font-size: 1.1rem;
+      font-size: 1.15rem;
       font-weight: 800;
       color: var(--sprint1);
       letter-spacing: 0.5px;
@@ -107,23 +114,23 @@
       color: var(--text-muted);
     }
 
-    .date-shamsi {
+    .date-primary {
       color: #e2e8f0;
       font-weight: 600;
-      direction: rtl;
-      unicode-bidi: isolate;
     }
 
-    .date-miladi {
+    .date-secondary {
       color: #64748b;
       font-size: 0.68rem;
-      direction: ltr;
-      unicode-bidi: isolate;
-      text-align: right;
-      display: inline-block;
     }
 
-    .settings-btn {
+    .top-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .action-btn {
       background: rgba(255, 255, 255, 0.05);
       border: 1px solid rgba(255, 255, 255, 0.1);
       border-radius: 10px;
@@ -135,10 +142,16 @@
       transition: all 0.2s;
     }
 
-    .settings-btn:hover {
+    .action-btn:hover {
       background: rgba(56, 189, 248, 0.15);
       border-color: var(--sprint1);
       color: #fff;
+    }
+
+    .lang-btn {
+      font-weight: 800;
+      color: var(--sprint1);
+      min-width: 44px;
     }
 
     .dashboard {
@@ -219,7 +232,7 @@
       padding: 8px 20px;
       border-radius: 30px;
       margin-bottom: 20px;
-      letter-spacing: -0.3px;
+      letter-spacing: -0.2px;
       box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
       transition: all 0.4s ease;
     }
@@ -274,17 +287,18 @@
       background: rgba(30, 41, 59, 0.6);
       border: 1px solid rgba(255, 255, 255, 0.08);
       color: var(--text);
-      padding: 10px 12px;
+      padding: 10px 8px;
       border-radius: 12px;
-      font-size: 0.82rem;
+      font-size: 0.8rem;
       font-weight: 700;
       cursor: pointer;
       min-height: 44px;
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      gap: 6px;
+      gap: 5px;
       user-select: none;
+      white-space: nowrap;
       transition: all 0.2s;
     }
 
@@ -301,7 +315,7 @@
     button.active-noise { background: rgba(16, 185, 129, 0.2); color: #34d399; border-color: #34d399; box-shadow: 0 0 10px rgba(52, 211, 153, 0.3); }
     button.active-gamma { background: rgba(251, 146, 60, 0.2); color: #fb923c; border-color: #fb923c; box-shadow: 0 0 10px rgba(251, 146, 60, 0.3); }
 
-    .anchor-box { margin-top: 18px; width: 100%; text-align: right; }
+    .anchor-box { margin-top: 18px; width: 100%; }
     .anchor-box label {
       font-size: 0.74rem;
       color: var(--text-muted);
@@ -443,7 +457,6 @@
       font-weight: 700;
     }
 
-    /* پنجره مودال تنظیمات */
     .modal-backdrop {
       position: fixed;
       inset: 0;
@@ -520,17 +533,20 @@
     <div class="datetime-widget">
       <div id="liveClock" class="clock-display">00:00:00</div>
       <div class="date-display">
-        <span id="shamsiDate" class="date-shamsi">درحال بارگذاری...</span>
-        <span id="miladiDate" class="date-miladi" dir="ltr">Loading...</span>
+        <span id="primaryDate" class="date-primary">...</span>
+        <span id="secondaryDate" class="date-secondary">...</span>
       </div>
     </div>
-    <button class="settings-btn" onclick="openSettingsModal()">⚙️ تنظیمات</button>
+    <div class="top-actions">
+      <button id="langToggleBtn" class="action-btn lang-btn" onclick="toggleLanguage()">EN</button>
+      <button id="settingsBtn" class="action-btn" onclick="openSettingsModal()">⚙️ تنظیمات</button>
+    </div>
   </div>
 
   <div class="dashboard">
-    <!-- پنل ۱: تایمر و فرماندهی تمرکز -->
+    <!-- پنل ۱: تایمر -->
     <div class="panel timer-panel">
-      <div id="phaseBadge" class="phase-badge">اسپرینت ۱ (حمله ۲۰ دقیقه‌ای)</div>
+      <div id="phaseBadge" class="phase-badge">...</div>
       
       <div class="timer-wrap">
         <svg>
@@ -541,36 +557,36 @@
       </div>
 
       <div class="controls-grid">
-        <button id="startBtn" class="primary" onclick="toggleTimer()">⚡ شروع</button>
-        <button id="noiseBtn" onclick="toggleBrownNoise()">🌊 نویز بم</button>
-        <button id="gammaBtn" onclick="toggleGammaWave()">🧠 ۴۰Hz</button>
-        <button onclick="resetTimer()">↺ ریست</button>
-        <button onclick="skipPhase()">⏭ بعدی</button>
-        <button onclick="toggleFullScreen()">⛶ فول</button>
+        <button id="startBtn" class="primary" onclick="toggleTimer()">⚡ Start</button>
+        <button id="noiseBtn" onclick="toggleBrownNoise()">🌊 Brown Noise</button>
+        <button id="gammaBtn" onclick="toggleGammaWave()">🧠 40Hz Wave</button>
+        <button id="resetBtn" onclick="resetTimer()">↺ Reset</button>
+        <button id="skipBtn" onclick="skipPhase()">⏭ Next</button>
+        <button id="fullBtn" onclick="toggleFullScreen()">⛶ Full</button>
       </div>
 
       <div class="anchor-box">
         <label>
-          <span>🎯 لنگر شروع دوباره:</span>
+          <span id="lblAnchor">🎯 Restart Anchor:</span>
           <span style="color: var(--text-muted); font-size: 0.68rem;">Bookmark Hack</span>
         </label>
-        <input id="anchorInput" type="text" placeholder="مثلاً: شروع نوشتن پاراگراف دوم...">
-        <div id="anchorAlert" class="anchor-alert">⚠️ ۳۰ ثانیه مانده! دست بکش و بلند شو.</div>
+        <input id="anchorInput" type="text" placeholder="...">
+        <div id="anchorAlert" class="anchor-alert">⚠️ 30 seconds left! Wrap up and step away.</div>
       </div>
 
       <div class="shortcuts-bar">
-        <span><kbd>Space</kbd> تایمر</span>
-        <span><kbd>B</kbd> نویز بم</span>
-        <span><kbd>G</kbd> موج گاما</span>
-        <span><kbd>R</kbd> ریست</span>
+        <span><kbd>Space</kbd> <span id="scTimer">Timer</span></span>
+        <span><kbd>B</kbd> <span id="scBrown">Brown</span></span>
+        <span><kbd>G</kbd> <span id="scGamma">40Hz</span></span>
+        <span><kbd>R</kbd> <span id="scReset">Reset</span></span>
       </div>
     </div>
 
-    <!-- پنل ۲: گیمیفیکیشن، تسک‌ها، افکار و نوت -->
+    <!-- پنل ۲: تسک‌ها و افکار -->
     <div class="panel">
       <div class="xp-banner">
         <div class="xp-header">
-          <span id="levelDisplay" class="xp-level">⚡ لول ۱ (جنگجوی دوپامین)</span>
+          <span id="levelDisplay" class="xp-level">...</span>
           <span id="xpDisplay" class="xp-points">0 / 300 XP</span>
         </div>
         <div class="xp-bar-bg">
@@ -579,65 +595,65 @@
       </div>
 
       <div class="section-title">
-        <span>🎯 ریز‌تسک‌های حمله <span style="font-size: 0.72rem; color: var(--purple);">+50 XP</span></span>
-        <span id="taskCount" class="badge-count">۰ تسک</span>
+        <span id="lblTasks">🎯 Sprint Action Steps <span style="font-size: 0.72rem; color: var(--purple);">+50 XP</span></span>
+        <span id="taskCount" class="badge-count">0 Tasks</span>
       </div>
       <div class="input-wrap">
-        <input id="newTaskInput" type="text" placeholder="اقدام ۳ تا ۱۰ دقیقه‌ای..." onkeypress="handleKey(event, addTask)">
-        <button class="primary" style="min-width: 60px;" onclick="addTask()">ثبت</button>
+        <input id="newTaskInput" type="text" placeholder="..." onkeypress="handleKey(event, addTask)">
+        <button id="addTaskBtn" class="primary" style="min-width: 60px;" onclick="addTask()">Add</button>
       </div>
       <ul id="taskList" class="task-list"></ul>
 
       <div class="section-title" style="color: #fde68a;">
-        <span>🧠 پارک افکار مزاحم (Brain Dump)</span>
-        <span id="tangentCount" class="badge-count">۰ فکر</span>
+        <span id="lblTangents">🧠 Brain Dump (Distractions)</span>
+        <span id="tangentCount" class="badge-count">0 Items</span>
       </div>
       <div class="input-wrap">
-        <input id="newTangentInput" type="text" placeholder="فکری که پرید توی سرت..." onkeypress="handleKey(event, addTangent)">
-        <button style="background: rgba(245, 158, 11, 0.15); border-color: rgba(245, 158, 11, 0.3); color: #fde68a;" onclick="addTangent()">پارک</button>
+        <input id="newTangentInput" type="text" placeholder="..." onkeypress="handleKey(event, addTangent)">
+        <button id="addTangentBtn" style="background: rgba(245, 158, 11, 0.15); border-color: rgba(245, 158, 11, 0.3); color: #fde68a;" onclick="addTangent()">Park</button>
       </div>
       <ul id="tangentList" class="tangent-list"></ul>
 
       <div class="section-title">
-        <span>📝 پیش‌نویس، تمپلیت و یادداشت</span>
+        <span id="lblNotes">📝 Drafts & Notes</span>
       </div>
-      <textarea id="notesArea" class="notes-area" placeholder="تمپلیت‌ها یا یادداشت‌های مهم..." oninput="handleNotesInput()"></textarea>
+      <textarea id="notesArea" class="notes-area" placeholder="..." oninput="handleNotesInput()"></textarea>
       <div class="notes-footer">
-        <span>ذخیره خودکار ✓</span>
-        <span id="wordCountBadge" class="word-counter-badge">۰ کلمه</span>
+        <span id="lblAutoSave">Auto-saved ✓</span>
+        <span id="wordCountBadge" class="word-counter-badge">0 words</span>
       </div>
     </div>
   </div>
 </div>
 
-<!-- پنجره مودال تنظیمات زمان‌بندی -->
+<!-- پنجره تنظیمات -->
 <div id="settingsModal" class="modal-backdrop">
   <div class="modal-box">
     <div class="modal-header">
-      <span class="modal-title">⚙️ تنظیمات زمان فازها (دقیقه)</span>
+      <span id="modalTitle" class="modal-title">⚙️ Phase Durations (Minutes)</span>
       <button class="delete-btn" onclick="closeSettingsModal()">✕</button>
     </div>
     
     <div class="setting-row">
-      <label for="cfgSprint1">اسپرینت ۱ (حمله اول):</label>
+      <label id="lblCfgS1" for="cfgSprint1">Sprint 1 (Focus Sprint):</label>
       <input id="cfgSprint1" type="number" min="1" max="90">
     </div>
     <div class="setting-row">
-      <label for="cfgRest">ریست و استراحت:</label>
+      <label id="lblCfgRest" for="cfgRest">Rest & Reset:</label>
       <input id="cfgRest" type="number" min="1" max="30">
     </div>
     <div class="setting-row">
-      <label for="cfgSprint2">اسپرینت ۲ (حمله دوم):</label>
+      <label id="lblCfgS2" for="cfgSprint2">Sprint 2 (Deep Dive):</label>
       <input id="cfgSprint2" type="number" min="1" max="90">
     </div>
     <div class="setting-row">
-      <label for="cfgReward">پاداش آزاد (تخلیه دوپامین):</label>
+      <label id="lblCfgReward" for="cfgReward">Free Reward (Dopamine):</label>
       <input id="cfgReward" type="number" min="1" max="60">
     </div>
 
     <div class="modal-actions">
-      <button class="primary" style="flex: 1;" onclick="saveCustomSettings()">ذخیره تغییرات</button>
-      <button style="flex: 1;" onclick="resetDefaultSettings()">پیش‌فرض</button>
+      <button id="btnSaveSettings" class="primary" style="flex: 1;" onclick="saveCustomSettings()">Save</button>
+      <button id="btnResetSettings" style="flex: 1;" onclick="resetDefaultSettings()">Default</button>
     </div>
   </div>
 </div>
@@ -655,15 +671,177 @@
     }
   };
 
-  // مقادیر پیش‌فرض جدید: ۲۰، ۵، ۲۰، ۱۵ دقیقه
+  /* لرزش هوشمند */
+  function triggerVibration(pattern) {
+    try {
+      if ('vibrate' in navigator) {
+        navigator.vibrate(pattern);
+      }
+    } catch(e) {}
+  }
+
+  /* جلوگیری از خاموش شدن صفحه */
+  let wakeLock = null;
+  async function requestWakeLock() {
+    try {
+      if ('wakeLock' in navigator && !wakeLock) {
+        wakeLock = await navigator.wakeLock.request('screen');
+        wakeLock.addEventListener('release', () => { wakeLock = null; });
+      }
+    } catch (err) {}
+  }
+
+  function releaseWakeLock() {
+    if (wakeLock) {
+      wakeLock.release().catch(() => {});
+      wakeLock = null;
+    }
+  }
+
+  document.addEventListener('visibilitychange', async () => {
+    if (document.visibilityState === 'visible' && timerId) {
+      await requestWakeLock();
+    }
+  });
+
+  /* مدیا سشن لاک‌اسکرین */
+  function updateMediaSession(type) {
+    if ('mediaSession' in navigator) {
+      if (type === 'brown') {
+        navigator.mediaSession.metadata = new MediaMetadata({
+          title: currentLang === 'fa' ? 'نویز بم تمرکز' : 'Deep Brown Noise',
+          artist: 'Dopamine Focus Engine',
+          album: currentLang === 'fa' ? 'تمرکز عمیق' : 'Deep Work'
+        });
+      } else if (type === 'gamma') {
+        navigator.mediaSession.metadata = new MediaMetadata({
+          title: currentLang === 'fa' ? 'موج ۴۰ هرتز گاما' : '40Hz Gamma Wave',
+          artist: 'Dopamine Focus Engine',
+          album: currentLang === 'fa' ? 'تمرکز عمیق' : 'Deep Work'
+        });
+      }
+      navigator.mediaSession.setActionHandler('play', () => {
+        if (type === 'brown') toggleBrownNoise();
+        else if (type === 'gamma') toggleGammaWave();
+      });
+      navigator.mediaSession.setActionHandler('pause', () => {
+        brownAudio.pause();
+        gammaAudio.pause();
+        document.getElementById("noiseBtn").classList.remove("active-noise");
+        document.getElementById("gammaBtn").classList.remove("active-gamma");
+        applyLanguage();
+      });
+    }
+  }
+
+  const TRANSLATIONS = {
+    fa: {
+      langBtn: 'EN',
+      settingsBtn: '⚙️ تنظیمات',
+      start: '⚡ شروع',
+      pause: '⏸ توقف',
+      resume: '▶ ادامه',
+      brownNoise: '🌊 نویز بم',
+      brownStop: 'قطع نویز 🔊',
+      gamma: '🧠 ۴۰Hz',
+      gammaStop: 'قطع ۴۰Hz ⚡',
+      reset: '↺ ریست',
+      next: '⏭ بعدی',
+      full: '⛶ فول',
+      anchorLabel: '🎯 لنگر شروع دوباره:',
+      anchorPlaceholder: 'مثلاً: شروع نوشتن پاراگراف دوم...',
+      anchorAlert: '⚠️ ۳۰ ثانیه مانده! دست بکش و بلند شو.',
+      scTimer: 'تایمر',
+      scBrown: 'نویز بم',
+      scGamma: 'موج ۴۰Hz',
+      scReset: 'ریست',
+      levelPrefix: '⚡ لول',
+      levelTitle: '(جنگجوی دوپامین)',
+      tasksTitle: '🎯 ریز‌تسک‌های حمله',
+      taskPlaceholder: 'اقدام ۳ تا ۱۰ دقیقه‌ای...',
+      taskBtn: 'ثبت',
+      taskUnit: 'تسک',
+      tangentsTitle: '🧠 پارک افکار مزاحم (Brain Dump)',
+      tangentPlaceholder: 'فکری که پرید توی سرت...',
+      tangentBtn: 'پارک',
+      tangentUnit: 'فکر',
+      notesTitle: '📝 پیش‌نویس، تمپلیت و یادداشت',
+      notesPlaceholder: 'تمپلیت‌ها یا یادداشت‌های مهم...',
+      autoSave: 'ذخیره خودکار ✓',
+      wordUnit: 'کلمه',
+      modalTitle: '⚙️ تنظیمات زمان فازها (دقیقه)',
+      cfgS1: 'اسپرینت ۱ (حمله اول):',
+      cfgRest: 'ریست و استراحت:',
+      cfgS2: 'اسپرینت ۲ (حمله دوم):',
+      cfgReward: 'پاداش آزاد (تخلیه دوپامین):',
+      saveChanges: 'ذخیره تغییرات',
+      defaultBtn: 'پیش‌فرض',
+      phases: [
+        { name: "اسپرینت ۱ (حمله تمرکز)", tag: "حمله ۱" },
+        { name: "ریست خسته‌کننده (بدون گوشی!)", tag: "استراحت" },
+        { name: "اسپرینت ۲ (تکمیل نهایی)", tag: "حمله ۲" },
+        { name: "پاداش آزاد (تخلیه دوپامین)", tag: "پاداش" }
+      ]
+    },
+    en: {
+      langBtn: 'FA',
+      settingsBtn: '⚙️ Settings',
+      start: '⚡ Start',
+      pause: '⏸ Pause',
+      resume: '▶ Resume',
+      brownNoise: '🌊 Brown',
+      brownStop: 'Stop Brown',
+      gamma: '🧠 40Hz',
+      gammaStop: 'Stop 40Hz',
+      reset: '↺ Reset',
+      next: '⏭ Next',
+      full: '⛶ Full',
+      anchorLabel: '🎯 Restart Anchor:',
+      anchorPlaceholder: 'e.g., Drafting second section...',
+      anchorAlert: '⚠️ 30s left! Step back & reset.',
+      scTimer: 'Timer',
+      scBrown: 'Brown',
+      scGamma: '40Hz',
+      scReset: 'Reset',
+      levelPrefix: '⚡ Level',
+      levelTitle: '(Dopamine Warrior)',
+      tasksTitle: '🎯 Action Steps',
+      taskPlaceholder: '3 to 10 min action step...',
+      taskBtn: 'Add',
+      taskUnit: 'Tasks',
+      tangentsTitle: '🧠 Brain Dump',
+      tangentPlaceholder: 'Distraction that jumped in...',
+      tangentBtn: 'Park',
+      tangentUnit: 'Items',
+      notesTitle: '📝 Quick Notes & Templates',
+      notesPlaceholder: 'Templates or important notes...',
+      autoSave: 'Auto-saved ✓',
+      wordUnit: 'words',
+      modalTitle: '⚙️ Phase Durations (Min)',
+      cfgS1: 'Sprint 1 (Focus):',
+      cfgRest: 'Rest & Reset:',
+      cfgS2: 'Sprint 2 (Deep Dive):',
+      cfgReward: 'Free Reward (Dopamine):',
+      saveChanges: 'Save Changes',
+      defaultBtn: 'Default',
+      phases: [
+        { name: "Sprint 1 (Focus Sprint)", tag: "Sprint 1" },
+        { name: "Boring Reset (No Screens)", tag: "Rest" },
+        { name: "Sprint 2 (Deep Dive)", tag: "Sprint 2" },
+        { name: "Reward (Dopamine Reset)", tag: "Reward" }
+      ]
+    }
+  };
+
+  let currentLang = safeStorage.get('focus_lang', 'fa');
   const defaultDurations = { sprint1: 20, rest: 5, sprint2: 20, reward: 15 };
   let customDurations = safeStorage.get('focus_custom_durations_v2', defaultDurations);
 
   let PROTOCOL = [
-    { name: "اسپرینت ۱ (حمله ۲۰ دقیقه‌ای)", tag: "حمله ۱", duration: customDurations.sprint1 * 60, color: "#38bdf8", glow: "rgba(56, 189, 248, 0.4)", bg: "radial-gradient(circle at 50% 10%, #0c2340 0%, #07090e 100%)" },
-    { name: "ریست خسته‌کننده (بدون گوشی!)", tag: "استراحت", duration: customDurations.rest * 60, color: "#64748b", glow: "rgba(100, 116, 139, 0.2)", bg: "radial-gradient(circle at 50% 10%, #050608 0%, #020304 100%)" },
-    { name: "اسپرینت ۲ (تکمیل نهایی)", tag: "حمله ۲", duration: customDurations.sprint2 * 60, color: "#10b981", glow: "rgba(16, 185, 129, 0.4)", bg: "radial-gradient(circle at 50% 10%, #062b1e 0%, #07090e 100%)" },
-    { name: "پاداش آزاد (تخلیه دوپامین)", tag: "پاداش", duration: customDurations.reward * 60, color: "#f59e0b", glow: "rgba(245, 158, 11, 0.4)", bg: "radial-gradient(circle at 50% 10%, #291804 0%, #07090e 100%)" }
+    { duration: customDurations.sprint1 * 60, color: "#38bdf8", glow: "rgba(56, 189, 248, 0.4)", bg: "radial-gradient(circle at 50% 10%, #0c2340 0%, #07090e 100%)" },
+    { duration: customDurations.rest * 60, color: "#64748b", glow: "rgba(100, 116, 139, 0.2)", bg: "radial-gradient(circle at 50% 10%, #050608 0%, #020304 100%)" },
+    { duration: customDurations.sprint2 * 60, color: "#10b981", glow: "rgba(16, 185, 129, 0.4)", bg: "radial-gradient(circle at 50% 10%, #062b1e 0%, #07090e 100%)" },
+    { duration: customDurations.reward * 60, color: "#f59e0b", glow: "rgba(245, 158, 11, 0.4)", bg: "radial-gradient(circle at 50% 10%, #291804 0%, #07090e 100%)" }
   ];
 
   let currentPhase = 0;
@@ -677,37 +855,110 @@
   const startBtn = document.getElementById("startBtn");
   const anchorAlert = document.getElementById("anchorAlert");
 
-  // ماژول ساعت و تقویم
+  function toggleLanguage() {
+    currentLang = currentLang === 'fa' ? 'en' : 'fa';
+    safeStorage.set('focus_lang', currentLang);
+    applyLanguage();
+  }
+
+  function applyLanguage() {
+    const t = TRANSLATIONS[currentLang];
+    document.documentElement.lang = currentLang;
+    document.documentElement.dir = currentLang === 'fa' ? 'rtl' : 'ltr';
+
+    document.getElementById("langToggleBtn").innerText = t.langBtn;
+    document.getElementById("settingsBtn").innerText = t.settingsBtn;
+
+    startBtn.innerText = timerId ? t.pause : t.start;
+    document.getElementById("noiseBtn").innerText = brownAudio.paused ? t.brownNoise : t.brownStop;
+    document.getElementById("gammaBtn").innerText = gammaAudio.paused ? t.gamma : t.gammaStop;
+    document.getElementById("resetBtn").innerText = t.reset;
+    document.getElementById("skipBtn").innerText = t.next;
+    document.getElementById("fullBtn").innerText = t.full;
+
+    document.getElementById("lblAnchor").innerText = t.anchorLabel;
+    document.getElementById("anchorInput").placeholder = t.anchorPlaceholder;
+    anchorAlert.innerText = t.anchorAlert;
+    document.getElementById("scTimer").innerText = t.scTimer;
+    document.getElementById("scBrown").innerText = t.scBrown;
+    document.getElementById("scGamma").innerText = t.scGamma;
+    document.getElementById("scReset").innerText = t.scReset;
+
+    document.getElementById("lblTasks").innerHTML = `${t.tasksTitle} <span style="font-size: 0.72rem; color: var(--purple);">+50 XP</span>`;
+    document.getElementById("newTaskInput").placeholder = t.taskPlaceholder;
+    document.getElementById("addTaskBtn").innerText = t.taskBtn;
+
+    document.getElementById("lblTangents").innerText = t.tangentsTitle;
+    document.getElementById("newTangentInput").placeholder = t.tangentPlaceholder;
+    document.getElementById("addTangentBtn").innerText = t.tangentBtn;
+
+    document.getElementById("lblNotes").innerText = t.notesTitle;
+    document.getElementById("notesArea").placeholder = t.notesPlaceholder;
+    document.getElementById("lblAutoSave").innerText = t.autoSave;
+
+    document.getElementById("modalTitle").innerText = t.modalTitle;
+    document.getElementById("lblCfgS1").innerText = t.cfgS1;
+    document.getElementById("lblCfgRest").innerText = t.cfgRest;
+    document.getElementById("lblCfgS2").innerText = t.cfgS2;
+    document.getElementById("lblCfgReward").innerText = t.cfgReward;
+    document.getElementById("btnSaveSettings").innerText = t.saveChanges;
+    document.getElementById("btnResetSettings").innerText = t.defaultBtn;
+
+    updatePhaseStyles();
+    updateDisplay();
+    renderXP();
+    renderTasks();
+    renderTangents();
+    handleNotesInput();
+    updateLiveClock();
+  }
+
   function updateLiveClock() {
     const now = new Date();
-    
-    // ساعت
     const h = String(now.getHours()).padStart(2, '0');
     const m = String(now.getMinutes()).padStart(2, '0');
     const s = String(now.getSeconds()).padStart(2, '0');
     document.getElementById("liveClock").innerText = `${h}:${m}:${s}`;
 
-    // تقویم شمسی مرتب (روز هفته + روز + ماه + سال)
-    const shamsiFormatter = new Intl.DateTimeFormat('fa-IR-u-ca-persian', {
-      weekday: 'long',
-      day: 'numeric',
-      month: 'long',
-      year: 'numeric'
-    });
-    const sp = {};
-    shamsiFormatter.formatToParts(now).forEach(p => { sp[p.type] = p.value; });
-    document.getElementById("shamsiDate").innerText = `${sp.weekday} ${sp.day} ${sp.month} ${sp.year}`;
+    const primElem = document.getElementById("primaryDate");
+    const secElem = document.getElementById("secondaryDate");
 
-    // تقویم میلادی
-    const miladiDay = String(now.getDate()).padStart(2, '0');
-    const miladiMonth = now.toLocaleString('en-US', { month: 'short' });
-    const miladiYear = now.getFullYear();
-    document.getElementById("miladiDate").innerText = `${miladiDay} ${miladiMonth} ${miladiYear}`;
+    if (currentLang === 'fa') {
+      const shamsiFormatter = new Intl.DateTimeFormat('fa-IR-u-ca-persian', {
+        weekday: 'long',
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric'
+      });
+      const sp = {};
+      shamsiFormatter.formatToParts(now).forEach(p => { sp[p.type] = p.value; });
+      primElem.innerText = `${sp.weekday} ${sp.day} ${sp.month} ${sp.year}`;
+
+      const miladiDay = String(now.getDate()).padStart(2, '0');
+      const miladiMonth = now.toLocaleString('en-US', { month: 'short' });
+      const miladiYear = now.getFullYear();
+      secElem.innerText = `${miladiDay} ${miladiMonth} ${miladiYear}`;
+    } else {
+      const enFormatter = new Intl.DateTimeFormat('en-US', {
+        weekday: 'short',
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric'
+      });
+      primElem.innerText = enFormatter.format(now);
+
+      const shamsiFormatter = new Intl.DateTimeFormat('fa-IR-u-ca-persian', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric'
+      });
+      const sp = {};
+      shamsiFormatter.formatToParts(now).forEach(p => { sp[p.type] = p.value; });
+      secElem.innerHTML = `<span dir="rtl" style="display:inline-block">${sp.day} ${sp.month} ${sp.year}</span>`;
+    }
   }
   setInterval(updateLiveClock, 1000);
-  updateLiveClock();
 
-  // مدیریت پنجره مودال تنظیمات
   const modal = document.getElementById("settingsModal");
   function openSettingsModal() {
     document.getElementById("cfgSprint1").value = customDurations.sprint1;
@@ -752,7 +1003,6 @@
     saveCustomSettings();
   }
 
-  // موتور صوتی افکت‌های رابط کاربری
   let sfxCtx = null;
   function getSfxCtx() {
     try {
@@ -795,7 +1045,6 @@
         const osc = ctx.createOscillator();
         const gain = ctx.createGain();
         osc.frequency.value = freq;
-        osc.type = "sine";
         osc.connect(gain);
         gain.connect(ctx.destination);
         const startTime = ctx.currentTime + i * 0.07;
@@ -827,7 +1076,6 @@
     } catch(e) {}
   }
 
-  // پلیر MP3
   const brownAudio = new Audio('./brown.mp3');
   brownAudio.loop = true;
 
@@ -836,65 +1084,74 @@
 
   function toggleBrownNoise() {
     const btn = document.getElementById("noiseBtn");
+    const t = TRANSLATIONS[currentLang];
     if (!brownAudio.paused) {
       brownAudio.pause();
       btn.classList.remove("active-noise");
-      btn.innerText = "🌊 نویز بم";
+      btn.innerText = t.brownNoise;
     } else {
       gammaAudio.pause();
       document.getElementById("gammaBtn").classList.remove("active-gamma");
-      document.getElementById("gammaBtn").innerText = "🧠 ۴۰Hz";
+      document.getElementById("gammaBtn").innerText = t.gamma;
       
       brownAudio.play().catch(() => {});
       btn.classList.add("active-noise");
-      btn.innerText = "قطع نویز 🔊";
+      btn.innerText = t.brownStop;
+      updateMediaSession('brown');
     }
   }
 
   function toggleGammaWave() {
     const btn = document.getElementById("gammaBtn");
+    const t = TRANSLATIONS[currentLang];
     if (!gammaAudio.paused) {
       gammaAudio.pause();
       btn.classList.remove("active-gamma");
-      btn.innerText = "🧠 ۴۰Hz";
+      btn.innerText = t.gamma;
     } else {
       brownAudio.pause();
       document.getElementById("noiseBtn").classList.remove("active-noise");
-      document.getElementById("noiseBtn").innerText = "🌊 نویز بم";
+      document.getElementById("noiseBtn").innerText = t.brownNoise;
       
       gammaAudio.play().catch(() => {});
       btn.classList.add("active-gamma");
-      btn.innerText = "قطع ۴۰Hz ⚡";
+      btn.innerText = t.gammaStop;
+      updateMediaSession('gamma');
     }
   }
 
-  // سیستم لول و امتیاز XP
   let xp = safeStorage.get('focus_xp', 0);
   const XP_PER_LEVEL = 300;
 
+  /* اصلاح‌شده: جلوگیری از منفی شدن و هماهنگی با کاهش امتیاز */
   function addXP(amount) {
     const oldLevel = Math.floor(xp / XP_PER_LEVEL) + 1;
-    xp += amount;
+    xp = Math.max(0, xp + amount);
     const newLevel = Math.floor(xp / XP_PER_LEVEL) + 1;
     safeStorage.set('focus_xp', xp);
     renderXP();
-    if (newLevel > oldLevel) playLevelUpFanfare();
+    if (newLevel > oldLevel) {
+      playLevelUpFanfare();
+      triggerVibration([100, 80, 100, 80, 300]);
+    }
   }
 
   function renderXP() {
+    const t = TRANSLATIONS[currentLang];
     const currentLevel = Math.floor(xp / XP_PER_LEVEL) + 1;
     const currentLevelXP = xp % XP_PER_LEVEL;
     const percent = (currentLevelXP / XP_PER_LEVEL) * 100;
-    document.getElementById("levelDisplay").innerText = `⚡ لول ${currentLevel} (جنگجوی دوپامین)`;
+    document.getElementById("levelDisplay").innerText = `${t.levelPrefix} ${currentLevel} ${t.levelTitle}`;
     document.getElementById("xpDisplay").innerText = `${currentLevelXP} / ${XP_PER_LEVEL} XP`;
     document.getElementById("xpBarFill").style.width = `${percent}%`;
   }
 
   function updateDisplay() {
+    const t = TRANSLATIONS[currentLang];
     const min = Math.floor(timeLeft / 60).toString().padStart(2, '0');
     const sec = (timeLeft % 60).toString().padStart(2, '0');
     timeText.innerText = `${min}:${sec}`;
-    document.title = `(${min}:${sec}) 🎯 ${PROTOCOL[currentPhase].tag}`;
+    document.title = `(${min}:${sec}) 🎯 ${t.phases[currentPhase].tag}`;
 
     const total = PROTOCOL[currentPhase].duration;
     const offset = CIRCLE_LENGTH - (timeLeft / total) * CIRCLE_LENGTH;
@@ -902,15 +1159,20 @@
 
     if (currentPhase === 0 && timeLeft <= 30 && timeLeft > 0) {
       anchorAlert.style.display = "block";
-      if (timeLeft === 30) playTone(587, 0.4);
+      if (timeLeft === 30) {
+        playTone(587, 0.4);
+        triggerVibration([150, 100, 150]);
+      }
     } else {
       anchorAlert.style.display = "none";
     }
   }
 
   function updatePhaseStyles() {
+    const t = TRANSLATIONS[currentLang];
     const phase = PROTOCOL[currentPhase];
-    phaseBadge.innerText = phase.name;
+    const phaseInfo = t.phases[currentPhase];
+    phaseBadge.innerText = phaseInfo.name;
     phaseBadge.style.background = phase.color + "22";
     phaseBadge.style.color = phase.color;
     phaseBadge.style.border = `1px solid ${phase.color}55`;
@@ -921,20 +1183,24 @@
 
   function toggleTimer() {
     getSfxCtx();
+    const t = TRANSLATIONS[currentLang];
     if (timerId) {
       clearInterval(timerId);
       timerId = null;
-      startBtn.innerText = "▶ ادامه";
+      releaseWakeLock();
+      startBtn.innerText = t.resume;
       startBtn.classList.remove("primary");
     } else {
-      startBtn.innerText = "⏸ توقف";
+      startBtn.innerText = t.pause;
       startBtn.classList.add("primary");
+      requestWakeLock();
       timerId = setInterval(() => {
         if (timeLeft > 0) {
           timeLeft--;
           updateDisplay();
         } else {
           playTone(880, 0.9);
+          triggerVibration([250, 150, 250, 150, 500]);
           if (currentPhase === 0 || currentPhase === 2) addXP(100);
           nextPhase();
         }
@@ -943,8 +1209,10 @@
   }
 
   function resetTimer() {
+    const t = TRANSLATIONS[currentLang];
     if (timerId) { clearInterval(timerId); timerId = null; }
-    startBtn.innerText = "⚡ شروع";
+    releaseWakeLock();
+    startBtn.innerText = t.start;
     startBtn.classList.add("primary");
     timeLeft = PROTOCOL[currentPhase].duration;
     updateDisplay();
@@ -958,8 +1226,10 @@
   }
 
   function skipPhase() {
+    const t = TRANSLATIONS[currentLang];
     if (timerId) { clearInterval(timerId); timerId = null; }
-    startBtn.innerText = "⚡ شروع";
+    releaseWakeLock();
+    startBtn.innerText = t.start;
     startBtn.classList.add("primary");
     nextPhase();
   }
@@ -984,6 +1254,7 @@
 
   let tasks = safeStorage.get('adhd_tasks', []);
   function renderTasks() {
+    const t = TRANSLATIONS[currentLang];
     const list = document.getElementById("taskList");
     const countBadge = document.getElementById("taskCount");
     list.innerHTML = "";
@@ -999,7 +1270,7 @@
       `;
       list.appendChild(li);
     });
-    countBadge.innerText = `${tasks.length} تسک`;
+    countBadge.innerText = `${tasks.length} ${t.taskUnit}`;
     safeStorage.set('adhd_tasks', tasks);
   }
 
@@ -1010,14 +1281,20 @@
       tasks.push({ text: val, completed: false });
       input.value = "";
       renderTasks();
+      triggerVibration(40);
     }
   }
 
+  /* اصلاح‌شده: کسر امتیاز در زمان برداشتن تیک */
   function toggleTask(index) {
     tasks[index].completed = !tasks[index].completed;
     if (tasks[index].completed) {
       playRewardChime();
       addXP(50);
+      triggerVibration([60, 40, 80]);
+    } else {
+      addXP(-50);
+      triggerVibration(30);
     }
     renderTasks();
   }
@@ -1025,10 +1302,12 @@
   function deleteTask(index) {
     tasks.splice(index, 1);
     renderTasks();
+    triggerVibration(30);
   }
 
   let tangents = safeStorage.get('adhd_tangents', []);
   function renderTangents() {
+    const t = TRANSLATIONS[currentLang];
     const list = document.getElementById("tangentList");
     const countBadge = document.getElementById("tangentCount");
     list.innerHTML = "";
@@ -1041,7 +1320,7 @@
       `;
       list.appendChild(li);
     });
-    countBadge.innerText = `${tangents.length} فکر`;
+    countBadge.innerText = `${tangents.length} ${t.tangentUnit}`;
     safeStorage.set('adhd_tangents', tangents);
   }
 
@@ -1052,12 +1331,14 @@
       tangents.push(val);
       input.value = "";
       renderTangents();
+      triggerVibration(40);
     }
   }
 
   function deleteTangent(index) {
     tangents.splice(index, 1);
     renderTangents();
+    triggerVibration(30);
   }
 
   function handleKey(e, callback) { if (e.key === 'Enter') callback(); }
@@ -1072,9 +1353,10 @@
   }
 
   function handleNotesInput() {
+    const t = TRANSLATIONS[currentLang];
     safeStorage.set('adhd_notes', notesArea.value);
     const count = countWords(notesArea.value);
-    wordCountBadge.innerText = `${count} کلمه`;
+    wordCountBadge.innerText = `${count} ${t.wordUnit}`;
   }
 
   if ('serviceWorker' in navigator) {
@@ -1084,12 +1366,7 @@
   }
 
   circle.style.strokeDasharray = CIRCLE_LENGTH;
-  updatePhaseStyles();
-  updateDisplay();
-  renderXP();
-  renderTasks();
-  renderTangents();
-  handleNotesInput();
+  applyLanguage();
 </script>
 </body>
 </html>
